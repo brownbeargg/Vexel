@@ -1,0 +1,3 @@
+[submodule "Vexel/vendor/VexelUtils"]
+	path = Vexel/vendor/VexelUtils
+	url = https://github.com/brownbeargg/VexelUtils.git
