@@ -8,9 +8,11 @@ namespace Vex
     class Application : public RefCount
     {
       public:
-        virtual ~Application() = default;
+        virtual ~Application();
 
         void Run();
+
+        virtual void OnUpdate() = 0;
 
         void PushLayer(Layer* layer);
         void PushOverlay(Layer* overlay);
@@ -24,7 +26,7 @@ namespace Vex
         static Application* Create();
 
       protected:
-        Application() = default;
+        Application();
 
       private:
         bool m_Running = true;

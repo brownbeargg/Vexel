@@ -8,5 +8,10 @@ namespace Vex
     {
       public:
         VexisApplication();
+        ~VexisApplication();
+        void OnUpdate() override;
+
+      private:
+        Ref<Window> m_Window;
     };
 } // namespace Vex

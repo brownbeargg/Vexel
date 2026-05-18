@@ -19,9 +19,14 @@ add_library(Vexel STATIC
 )
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/Vendor/VexelUtils)
+
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/Vendor/GLFW)
+
 target_link_libraries(Vexel
     PUBLIC
     VexelUtils
+
+    glfw
 )
 
 target_include_directories(Vexel
@@ -32,4 +37,6 @@ target_include_directories(Vexel
 
     # ENGINE
     ${CMAKE_CURRENT_SOURCE_DIR}/Source
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/GLFW/include
 )

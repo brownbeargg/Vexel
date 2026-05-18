@@ -1,11 +1,22 @@
 #include "Application.hpp"
 
 #include "Vexel/Core/Layer.hpp"
+#include "Vexel/Core/Window.hpp"
 #include "Vexel/Misc/DeltaTime.hpp"
 #include "Vexel/STL.hpp"
 
 namespace Vex
 {
+    Application::Application()
+    {
+        VEX_RELEASE_ASSERT(Window::CreateContext(), "Failed to create window context");
+    }
+
+    Application::~Application()
+    {
+        Window::DestroyContext();
+    }
+
     void Application::Run()
     {
         DeltaTime dt = 0;
@@ -15,6 +26,8 @@ namespace Vex
             for (Layer* layer : m_LayerStack)
                 layer->OnUpdate(dt);
         }
+
+        OnUpdate();
     }
 
     void Application::PushLayer(Layer* layer)
