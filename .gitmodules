@@ -1,0 +1,6 @@
+[submodule "Vexel/vendor/VexelUtils"]
+	path = Vexel/vendor/VexelUtils
+	url = https://github.com/brownbeargg/VexelUtils.git
+[submodule "Vexel/Vendor/GLFW"]
+	path = Vexel/Vendor/GLFW
+	url = https://github.com/glfw/glfw.git
