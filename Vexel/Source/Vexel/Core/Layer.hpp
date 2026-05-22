@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Vexel/Memory.hpp"
 #include "Vexel/Misc/DeltaTime.hpp"
+#include "Vexel/Utils.hpp"
 
 namespace Vex
 {
@@ -19,6 +19,8 @@ namespace Vex
 
         virtual void OnUpdate(DeltaTime dt) {}
         virtual void OnFixedUpdate(TimeStep ts) {}
+
+        virtual void OnEvent(Event& e) {}
 
         Weak<Application> App();
         const std::string& Name() { return m_Name; }

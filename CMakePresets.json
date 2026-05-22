@@ -49,13 +49,13 @@
   ],
   "buildPresets": [
     {
-      "name": "Random-Debug",
+      "name": "Debug",
       "displayName": "App Debug Build",
       "configurePreset": "debug",
       "configuration": "Debug"
     },
     {
-      "name": "Random-Release",
+      "name": "Release",
       "displayName": "App Release Build",
       "configurePreset": "release",
       "configuration": "Release"

@@ -9,7 +9,21 @@ namespace Vex
       public:
         VexisApplication();
         ~VexisApplication();
+
         void OnUpdate() override;
+        void PollEvents() override;
+
+      protected:
+        void OnWindowClose(WindowClosedEvent& e) override
+        {
+            /// @todo add == operator for Refs in VexelUtils
+            if (m_Window->ShouldClose())
+            {
+                m_Window->Close();
+                if (Window::GetNumberOfWindows() == 0)
+                    Close();
+            }
+        }
 
       private:
         Ref<Window> m_Window;

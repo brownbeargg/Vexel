@@ -1,7 +1,9 @@
 #pragma once
 
 #include "Vexel/Core/LayerStack.hpp"
-#include "Vexel/Memory.hpp"
+#include "Vexel/Events/ApplicationEvent.hpp"
+
+#include "Vexel/Utils.hpp"
 
 namespace Vex
 {
@@ -12,7 +14,12 @@ namespace Vex
 
         void Run();
 
+        virtual void PollEvents() = 0;
+        void ForwardEvent(Scope<Event> e);
+
         virtual void OnUpdate() = 0;
+
+        void Close() { m_Running = false; }
 
         void PushLayer(Layer* layer);
         void PushOverlay(Layer* overlay);
@@ -28,9 +35,14 @@ namespace Vex
       protected:
         Application();
 
+        virtual void OnWindowClose(WindowClosedEvent& e) = 0;
+
+      protected:
+        Vex::EventBus m_EventBus;
+
       private:
         bool m_Running = true;
 
-        LayerStack m_LayerStack = {Weak<Application>(this)};
+        LayerStack m_LayerStack = Weak<Application>(this);
     };
 } // namespace Vex

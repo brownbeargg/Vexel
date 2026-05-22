@@ -11,12 +11,13 @@
 #include "Vexel/Core/Layer.hpp"
 #include "Vexel/Core/LayerStack.hpp"
 
+/* Events */
+#include "Vexel/Events/ApplicationEvent.hpp"
+#include "Vexel/Events/KeyEvent.hpp"
+#include "Vexel/Events/MouseEvent.hpp"
+
 /* Misc */
 #include "Vexel/Misc/DeltaTime.hpp"
 
 /* Utils */
-#include "Vexel/Base.hpp"
-#include "Vexel/Debug.hpp"
-#include "Vexel/Files.hpp"
-#include "Vexel/Memory.hpp"
-#include "Vexel/STL.hpp"
+#include "Vexel/Utils.hpp"

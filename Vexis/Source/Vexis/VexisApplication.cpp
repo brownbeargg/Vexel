@@ -12,7 +12,10 @@ namespace Vex
     VexisApplication::VexisApplication() : Application()
     {
         m_Window = Window::Create();
-        PushLayer(new EditorLayer("HELLO WORLD"));
+        m_Window->SetEventCallbackFn(VEX_BIND_METHOD(ForwardEvent));
+        m_EventBus.Observe<WindowClosedEvent>(VEX_BIND_METHOD(OnWindowClose));
+
+        PushLayer(new EditorLayer());
     }
 
     VexisApplication::~VexisApplication() {}
@@ -20,6 +23,11 @@ namespace Vex
     void VexisApplication::OnUpdate()
     {
         m_Window->OnUpdate();
+    }
+
+    void VexisApplication::PollEvents()
+    {
+        m_Window->PollEvents();
     }
 } // namespace Vex
 
