@@ -16,7 +16,7 @@ namespace Vex
         void Run();
 
         virtual void PollEvents() = 0;
-        void ForwardEvent(Scope<Event> e);
+        void ForwardEvent(Scope<Event> e) { m_EventBus.Queue(std::move(e)); }
 
         virtual void OnUpdate() = 0;
 
@@ -39,13 +39,19 @@ namespace Vex
         virtual void OnWindowClose(WindowClosedEvent& e) = 0;
 
       protected:
-        Vex::EventBus m_EventBus;
+        EventBus m_EventBus;
+
+      private:
+        bool ShouldFixedUpdate();
 
       private:
         bool m_Running = true;
 
-        DeltaTime m_Time = 0;
-        float m_LastTime = 0;
+        DeltaTime m_Time = 0.0f;
+        float m_LastTime = 0.0f;
+
+        float m_TimeAccumulator = 0.0f;
+        const TimeStep m_FixedTimeStep = 1.0f ;/* / 60.0f; */
 
         LayerStack m_LayerStack = Weak<Application>(this);
     };

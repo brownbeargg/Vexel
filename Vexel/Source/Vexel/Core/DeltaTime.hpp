@@ -8,11 +8,11 @@ namespace Vex
         DeltaTime(float time) : m_Time(time) {}
         void Calculate(float& last);
 
-        float Sec() { return m_Time; }
-        float Milli() { return m_Time * 1'000.0f; }
-        float Micro() { return m_Time * 1'000'000.0f; }
+        float Sec() const { return m_Time; }
+        float Milli() const { return m_Time * 1'000.0f; }
+        float Micro() const { return m_Time * 1'000'000.0f; }
 
-        operator float() { return m_Time; }
+        operator float() const { return m_Time; }
 
       private:
         float m_Time = 0;

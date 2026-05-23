@@ -24,6 +24,11 @@ namespace Vex
         while (m_Running)
         {
             m_Time.Calculate(m_LastTime);
+            m_TimeAccumulator += m_Time.Sec();
+
+            while (ShouldFixedUpdate())
+                for (Layer* layer : m_LayerStack)
+                    layer->OnFixedUpdate(m_FixedTimeStep.Sec());
 
             for (Layer* layer : m_LayerStack)
                 layer->OnUpdate(m_Time);
@@ -35,9 +40,15 @@ namespace Vex
         }
     }
 
-    void Application::ForwardEvent(Scope<Event> e)
+    bool Application::ShouldFixedUpdate()
     {
-        m_EventBus.Queue(std::move(e));
+        if (m_TimeAccumulator >= m_FixedTimeStep.Sec())
+        {
+            m_TimeAccumulator -= m_FixedTimeStep.Sec();
+            return true;
+        }
+
+        return false;
     }
 
     void Application::PushLayer(Layer* layer)

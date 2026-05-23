@@ -8,5 +8,7 @@ namespace Vex
     {
       public:
         EditorLayer() : Layer("EditorLayer") {}
+
+        void OnFixedUpdate(TimeStep ts) override { VEX_WARN("OnFixedUpdate with deltatime: {}", ts.Sec()); }
     };
 } // namespace Vex
