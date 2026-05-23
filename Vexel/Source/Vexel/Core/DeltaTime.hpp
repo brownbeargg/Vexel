@@ -6,11 +6,11 @@ namespace Vex
     {
       public:
         DeltaTime(float time) : m_Time(time) {}
-        void Calculate();
+        void Calculate(float& last);
 
         float Sec() { return m_Time; }
-        float Milli() { return m_Time * 1000.0f; }
-        float Micro() { return m_Time * 1000000.0f; }
+        float Milli() { return m_Time * 1'000.0f; }
+        float Micro() { return m_Time * 1'000'000.0f; }
 
         operator float() { return m_Time; }
 

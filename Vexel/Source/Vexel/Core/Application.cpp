@@ -3,12 +3,14 @@
 #include "Vexel/Core/Layer.hpp"
 #include "Vexel/Core/Window.hpp"
 #include "Vexel/Events/ApplicationEvent.hpp"
-#include "Vexel/Misc/DeltaTime.hpp"
+
+#include "Vexel/Utils.hpp"
 
 namespace Vex
 {
     Application::Application()
     {
+        Log::Init();
         VEX_RELEASE_ASSERT(Window::CreateContext(), "Failed to create window context");
     }
 
@@ -19,12 +21,12 @@ namespace Vex
 
     void Application::Run()
     {
-        DeltaTime dt = 0;
-
         while (m_Running)
         {
+            m_Time.Calculate(m_LastTime);
+
             for (Layer* layer : m_LayerStack)
-                layer->OnUpdate(dt);
+                layer->OnUpdate(m_Time);
 
             OnUpdate();
 

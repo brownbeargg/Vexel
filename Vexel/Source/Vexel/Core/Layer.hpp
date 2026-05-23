@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Vexel/Misc/DeltaTime.hpp"
+#include "Vexel/Core/DeltaTime.hpp"
 #include "Vexel/Utils.hpp"
 
 namespace Vex

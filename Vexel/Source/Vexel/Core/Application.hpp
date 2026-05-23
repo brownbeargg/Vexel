@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Vexel/Core/DeltaTime.hpp"
 #include "Vexel/Core/LayerStack.hpp"
 #include "Vexel/Events/ApplicationEvent.hpp"
 
@@ -42,6 +43,9 @@ namespace Vex
 
       private:
         bool m_Running = true;
+
+        DeltaTime m_Time = 0;
+        float m_LastTime = 0;
 
         LayerStack m_LayerStack = Weak<Application>(this);
     };

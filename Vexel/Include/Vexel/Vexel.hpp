@@ -7,6 +7,9 @@
 #include "Vexel/Core/Application.hpp"
 #include "Vexel/Core/Window.hpp"
 
+/* Core */
+#include "Vexel/Core/DeltaTime.hpp"
+
 /* Layers */
 #include "Vexel/Core/Layer.hpp"
 #include "Vexel/Core/LayerStack.hpp"
@@ -15,9 +18,6 @@
 #include "Vexel/Events/ApplicationEvent.hpp"
 #include "Vexel/Events/KeyEvent.hpp"
 #include "Vexel/Events/MouseEvent.hpp"
-
-/* Misc */
-#include "Vexel/Misc/DeltaTime.hpp"
 
 /* Utils */
 #include "Vexel/Utils.hpp"
