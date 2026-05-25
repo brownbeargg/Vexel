@@ -6,12 +6,15 @@ namespace Vex
 {
     struct WindowProps
     {
-        std::string Title = "VEXEL ENGINE";
         uint32_t Width = 1280, Height = 720;
         int XPos = 0, YPos = 0;
+
+        bool VSync = false;
         bool Focus = true;
         bool HasTitleBar = true;
-        bool VSync = false;
+        bool Resizable = false;
+
+        std::string Title = "VEXEL ENGINE";
     };
 
     class Window : public RefCount

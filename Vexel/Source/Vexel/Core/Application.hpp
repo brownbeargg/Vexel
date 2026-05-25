@@ -51,7 +51,7 @@ namespace Vex
         float m_LastTime = 0.0f;
 
         float m_TimeAccumulator = 0.0f;
-        const TimeStep m_FixedTimeStep = 1.0f ;/* / 60.0f; */
+        const TimeStep m_FixedTimeStep = 1.0f / 60.0f;
 
         LayerStack m_LayerStack = Weak<Application>(this);
     };

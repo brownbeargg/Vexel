@@ -15,6 +15,7 @@ namespace Vex
         VEX_RELEASE_ASSERT(s_IsInitialized, "Window context is not initialized");
 
         glfwWindowHint(GLFW_DECORATED, props.HasTitleBar);
+        glfwWindowHint(GLFW_RESIZABLE, props.Resizable);
 
         glfwSwapInterval(props.VSync);
         m_Window = glfwCreateWindow(props.Width, props.Height, props.Title.c_str(), nullptr, nullptr);

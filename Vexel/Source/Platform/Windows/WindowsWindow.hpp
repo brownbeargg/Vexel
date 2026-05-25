@@ -36,12 +36,15 @@ namespace Vex
         {
             Weak<Window> Self = {};
 
-            std::string Title;
             uint32_t Width, Height;
             int XPos, YPos;
+
             bool Focus;
             bool HasTitleBar;
             bool VSync;
+            bool Resizable;
+
+            std::string Title;
 
             EventCallbackFn EventCallback = nullptr;
 
