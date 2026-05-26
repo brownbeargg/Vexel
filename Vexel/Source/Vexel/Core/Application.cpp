@@ -10,8 +10,14 @@ namespace Vex
 {
     Application::Application()
     {
+        FileSystem::Mount(
+            RootDirectory::Engine, FileSystem::GetProjectRoot(FileSystem::GetExecutableDir()) / "Vexel");
+
         Log::Init();
         VEX_RELEASE_ASSERT(Window::CreateContext(), "Failed to create window context");
+
+        /// @todo Refactor this away
+        m_Pipeline = Pipeline::Create("Assets/Shaders/FlatColor.vert", "Assets/Shaders/FlatColor.vert");
     }
 
     Application::~Application()

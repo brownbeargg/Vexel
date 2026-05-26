@@ -14,6 +14,8 @@ namespace Vex
     {
         VEX_RELEASE_ASSERT(s_IsInitialized, "Window context is not initialized");
 
+        m_Data.Self = Weak<Window>(this);
+
         glfwWindowHint(GLFW_DECORATED, props.HasTitleBar);
         glfwWindowHint(GLFW_RESIZABLE, props.Resizable);
 

@@ -33,5 +33,14 @@ namespace Vex
 
 int main(int argc, char* argv[])
 {
-    Vex::Main::Main(argc, argv);
+    try
+    {
+        Vex::Main::Main(argc, argv);
+    }
+    catch (std::exception e)
+    {
+        std::cout << e.what();
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
 }

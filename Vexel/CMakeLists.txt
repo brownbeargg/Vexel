@@ -40,3 +40,34 @@ target_include_directories(Vexel
 
     ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/GLFW/include
 )
+
+find_program(GLSLANG_VALIDATOR glslangValidator REQUIRED)
+
+set(SHADERS
+    ${CMAKE_CURRENT_SOURCE_DIR}/Assets/Shaders/FlatColor.vert
+    ${CMAKE_CURRENT_SOURCE_DIR}/Assets/Shaders/FlatColor.frag
+)
+
+set(COMPILED_SHADERS)
+
+foreach(SHADER ${SHADERS})
+        get_filename_component(FILE_NAME ${SHADER} NAME)
+        set(OUT_FILE ${CMAKE_BINARY_DIR}/Assets/Shaders/${FILE_NAME}.spv)
+        
+
+        add_custom_command(
+            OUTPUT ${OUT_FILE}
+            COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/Assets/Shaders
+            COMMAND ${GLSLANG_VALIDATOR} -V ${SHADER} -o ${OUT_FILE}
+            DEPENDS ${SHADER}
+            COMMENT "Compiling shader ${FILE_NAME}"
+        )
+
+        list(APPEND COMPILED_SHADERS ${OUT_FILE})
+endforeach()
+
+add_custom_target(CompileShaders ALL
+    DEPENDS ${COMPILED_SHADERS}
+)
+
+add_dependencies(Vexel CompileShaders)

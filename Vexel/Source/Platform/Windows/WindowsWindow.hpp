@@ -40,8 +40,8 @@ namespace Vex
             int XPos, YPos;
 
             bool Focus;
-            bool HasTitleBar;
             bool VSync;
+            bool HasTitleBar;
             bool Resizable;
 
             std::string Title;

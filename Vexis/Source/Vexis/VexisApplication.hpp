@@ -17,7 +17,7 @@ namespace Vex
         void OnWindowClose(WindowClosedEvent& e) override
         {
             /// @todo add == operator for Refs in VexelUtils
-            if (m_Window->ShouldClose())
+            if (m_Window->ShouldClose() && e.GetWindow() == m_Window)
             {
                 m_Window->Close();
                 if (Window::GetNumberOfWindows() == 0)

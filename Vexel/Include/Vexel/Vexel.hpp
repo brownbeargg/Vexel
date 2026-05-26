@@ -19,5 +19,8 @@
 #include "Vexel/Events/KeyEvent.hpp"
 #include "Vexel/Events/MouseEvent.hpp"
 
+/* Graphics */
+#include "Vexel/Graphics/Pipeline.hpp"
+
 /* Utils */
 #include "Vexel/Utils.hpp"

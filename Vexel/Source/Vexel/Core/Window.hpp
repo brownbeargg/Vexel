@@ -9,15 +9,15 @@ namespace Vex
         uint32_t Width = 1280, Height = 720;
         int XPos = 0, YPos = 0;
 
-        bool VSync = false;
         bool Focus = true;
+        bool VSync = false;
         bool HasTitleBar = true;
         bool Resizable = false;
 
         std::string Title = "VEXEL ENGINE";
     };
 
-    class Window : public RefCount
+    class Window
     {
       protected:
         using EventCallbackFn = std::function<void(Scope<Event>)>;

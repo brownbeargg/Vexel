@@ -3,12 +3,12 @@
 #include "Vexel/Core/DeltaTime.hpp"
 #include "Vexel/Core/LayerStack.hpp"
 #include "Vexel/Events/ApplicationEvent.hpp"
-
+#include "Vexel/Graphics/Pipeline.hpp"
 #include "Vexel/Utils.hpp"
 
 namespace Vex
 {
-    class Application : public RefCount
+    class Application
     {
       public:
         virtual ~Application();
@@ -54,5 +54,8 @@ namespace Vex
         const TimeStep m_FixedTimeStep = 1.0f / 60.0f;
 
         LayerStack m_LayerStack = Weak<Application>(this);
+
+        /// @todo Refactor these member variables
+        Pipeline m_Pipeline;
     };
 } // namespace Vex
