@@ -20,6 +20,7 @@ namespace Vex
       private:
         static void CreateInstance();
         static void SetupDebugMessenger();
+        static void PickPhysicalDevice();
 
         static std::vector<const char*> GetRequiredInstanceExtensions();
 
@@ -30,5 +31,7 @@ namespace Vex
         inline static vk::raii::Instance s_Instance = nullptr;
 
         inline static vk::raii::DebugUtilsMessengerEXT s_DebugMessenger = nullptr;
+
+        inline static vk::raii::PhysicalDevice s_PhysicalDevice = nullptr;
     };
 } // namespace Vex
