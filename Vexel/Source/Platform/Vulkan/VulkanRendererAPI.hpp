@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Platform/Vulkan/VulkanDevice.hpp"
 #include "Vexel/Renderer/RendererAPI.hpp"
 
 #include <vulkan/vulkan_raii.hpp>
@@ -21,6 +20,7 @@ namespace Vex
         static void CreateInstance();
         static void SetupDebugMessenger();
         static void PickPhysicalDevice();
+        static void CreateLogicalDevice();
 
         static std::vector<const char*> GetRequiredInstanceExtensions();
 
@@ -33,5 +33,12 @@ namespace Vex
         inline static vk::raii::DebugUtilsMessengerEXT s_DebugMessenger = nullptr;
 
         inline static vk::raii::PhysicalDevice s_PhysicalDevice = nullptr;
+
+        inline static vk::raii::Device s_Device = nullptr;
+        inline static std::vector<const char*> s_RequiredDeviceExtensions = {vk::KHRSwapchainExtensionName};
+
+        inline static vk::raii::Queue s_GraphicsQueue = nullptr;
+
+        vk::raii::SurfaceKHR surface = nullptr;
     };
 } // namespace Vex

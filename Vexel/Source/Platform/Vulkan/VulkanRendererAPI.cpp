@@ -19,8 +19,7 @@ namespace Vex
         CreateInstance();
         SetupDebugMessenger();
         PickPhysicalDevice();
-
-        VulkanDevice::Init();
+        CreateLogicalDevice();
     }
 
     void VulkanRendererAPI::Shutdown() {}
@@ -76,10 +75,8 @@ namespace Vex
 
             // Required extension support
 
-            std::vector<const char*> requiredDeviceExtension = {vk::KHRSwapchainExtensionName};
-
             auto availableDeviceExtensions = pd.enumerateDeviceExtensionProperties();
-            bool supportsAllRequiredExtensions = std::ranges::all_of(requiredDeviceExtension,
+            bool supportsAllRequiredExtensions = std::ranges::all_of(s_RequiredDeviceExtensions,
                 [&availableDeviceExtensions](auto const& requiredDeviceExtension)
             {
                 return std::ranges::any_of(availableDeviceExtensions,
@@ -112,7 +109,47 @@ namespace Vex
             "Found physical device(s) with Vulkan support, but there wasn't one suitable");
 
         s_PhysicalDevice = candidates.rbegin()->second;
+
+        VEX_CORE_INFO("Using GPU: {}", s_PhysicalDevice.getProperties().deviceName.data());
     }
+
+    void VulkanRendererAPI::CreateLogicalDevice()
+    {
+        std::vector<vk::QueueFamilyProperties> queueFamilyProperties =
+            s_PhysicalDevice.getQueueFamilyProperties();
+
+        auto graphicsQueueFamilyProperty = std::ranges::find_if(queueFamilyProperties, [](auto const& qfp)
+        { return (qfp.queueFlags & vk::QueueFlagBits::eGraphics) != static_cast<vk::QueueFlags>(0); });
+
+        auto graphicsIndex =
+            static_cast<uint32_t>(std::distance(queueFamilyProperties.begin(), graphicsQueueFamilyProperty));
+
+        float queuePriority = 0.5f;
+
+        vk::DeviceQueueCreateInfo deviceQueueCreateInfo{};
+        deviceQueueCreateInfo.setQueueCount(1)
+            .setPQueuePriorities(&queuePriority)
+            .setQueueFamilyIndex(graphicsIndex);
+
+        vk::PhysicalDeviceFeatures deviceFeatures;
+
+        vk::StructureChain<vk::PhysicalDeviceFeatures2, vk::PhysicalDeviceVulkan13Features,
+            vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>
+            featureChain;
+
+        featureChain.get<vk::PhysicalDeviceVulkan13Features>().dynamicRendering = true;
+        featureChain.get<vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>().extendedDynamicState = true;
+
+        vk::DeviceCreateInfo deviceCreateInfo{};
+        deviceCreateInfo.setPNext(&featureChain.get<vk::PhysicalDeviceFeatures2>())
+            .setQueueCreateInfoCount(1)
+            .setPQueueCreateInfos(&deviceQueueCreateInfo)
+            .setEnabledExtensionCount(static_cast<uint32_t>(s_RequiredDeviceExtensions.size()))
+            .setPpEnabledExtensionNames(s_RequiredDeviceExtensions.data());
+
+        s_Device = vk::raii::Device(s_PhysicalDevice, deviceCreateInfo);
+        s_GraphicsQueue = vk::raii::Queue(s_Device, graphicsIndex, 0);
+    };
 
     void VulkanRendererAPI::SetupDebugMessenger()
     {
@@ -122,6 +159,7 @@ namespace Vex
         vk::DebugUtilsMessageSeverityFlagsEXT severityFlags(
             vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
             vk::DebugUtilsMessageSeverityFlagBitsEXT::eError);
+
         vk::DebugUtilsMessageTypeFlagsEXT messageTypeFlags(vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
             vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance |
             vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation);
