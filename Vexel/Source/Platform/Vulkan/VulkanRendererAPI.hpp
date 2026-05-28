@@ -13,15 +13,22 @@ namespace Vex
         static void Init();
         static void Shutdown();
 
+        static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
+            VkDebugUtilsMessageTypeFlagsEXT type, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+            void* pUserData);
+
       private:
         static void CreateInstance();
+        static void SetupDebugMessenger();
 
-        static const char** GetRequiredInstanceExtensions(uint32_t& extensionCount);
+        static std::vector<const char*> GetRequiredInstanceExtensions();
+
+        static std::vector<const char*> SetupRequiredLayers();
 
       private:
         inline static vk::raii::Context s_Context;
         inline static vk::raii::Instance s_Instance = nullptr;
 
-        inline static VulkanDevice s_Device;
+        inline static vk::raii::DebugUtilsMessengerEXT s_DebugMessenger = nullptr;
     };
 } // namespace Vex
