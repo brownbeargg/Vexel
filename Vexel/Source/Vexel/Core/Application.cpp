@@ -4,25 +4,35 @@
 #include "Vexel/Core/Window.hpp"
 #include "Vexel/Events/ApplicationEvent.hpp"
 
+#include "Vexel/Renderer/RendererAPI.hpp"
+
 #include "Vexel/Utils.hpp"
 
 namespace Vex
 {
     Application::Application()
     {
+        Log::Init();
+
+        FileSystem::Mount(RootDirectory::Binary, FileSystem::GetExecutableDir());
+
+        FileSystem::Mount(RootDirectory::Build, FileSystem::GetBuildDir());
+
         FileSystem::Mount(
             RootDirectory::Engine, FileSystem::GetProjectRoot(FileSystem::GetExecutableDir()) / "Vexel");
 
-        Log::Init();
         VEX_RELEASE_ASSERT(Window::CreateContext(), "Failed to create window context");
 
+        RendererAPI::Init();
+
         /// @todo Refactor this away
-        m_Pipeline = Pipeline::Create("Assets/Shaders/FlatColor.vert", "Assets/Shaders/FlatColor.vert");
+        m_Pipeline = Pipeline::Create("Assets/Shaders/FlatColor.vert.spv", "Assets/Shaders/FlatColor.frag.spv");
     }
 
     Application::~Application()
     {
         Window::DestroyContext();
+        RendererAPI::Shutdown();
     }
 
     void Application::Run()

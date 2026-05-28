@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Vexel/Renderer/RendererAPI.hpp"
 #include "Vexel/Utils.hpp"
 
 namespace Vex
@@ -9,15 +10,7 @@ namespace Vex
     {
       public:
         Pipeline() = default;
-        Pipeline(std::string_view vertFilepath, std::string_view fragFilepath);
 
-        static Pipeline Create(std::string_view vertFilepath, std::string_view fragFilepath)
-        {
-            return Pipeline(vertFilepath, fragFilepath);
-        }
-
-      private:
-        /// @todo place this function in VexelUtils Vex::FileSystem
-        static std::vector<char> ReadBinary(std::string_view& filepath);
+        static Ref<Pipeline> Create(std::string_view vertFilepath, std::string_view fragFilepath);
     };
 } // namespace Vex

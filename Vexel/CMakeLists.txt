@@ -8,6 +8,7 @@ file(GLOB_RECURSE VEXEL_SRC_FILES CONFIGURE_DEPENDS
 if(WIN32)
     file(GLOB_RECURSE VEXEL_SRC_FILES_PLATFORM CONFIGURE_DEPENDS
         ${CMAKE_CURRENT_SOURCE_DIR}/Source/Platform/Windows/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Source/Platform/Vulkan/*.cpp
     )
 else()
     message(FATAL_ERROR "VEXEL ENGINE DOES NOT SUPPORT THIS PLATFORM")
@@ -22,11 +23,14 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/Vendor/VexelUtils)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/Vendor/GLFW)
 
+find_package(Vulkan REQUIRED)
+
 target_link_libraries(Vexel
     PUBLIC
     VexelUtils
 
     glfw
+    Vulkan::Vulkan
 )
 
 target_include_directories(Vexel
@@ -71,3 +75,5 @@ add_custom_target(CompileShaders ALL
 )
 
 add_dependencies(Vexel CompileShaders)
+
+file(TOUCH ${CMAKE_BINARY_DIR}/vexel.build)

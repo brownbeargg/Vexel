@@ -56,6 +56,6 @@ namespace Vex
         LayerStack m_LayerStack = Weak<Application>(this);
 
         /// @todo Refactor these member variables
-        Pipeline m_Pipeline;
+        Ref<Pipeline> m_Pipeline = nullptr;
     };
 } // namespace Vex
