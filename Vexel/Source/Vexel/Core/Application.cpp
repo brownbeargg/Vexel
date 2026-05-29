@@ -24,9 +24,6 @@ namespace Vex
         VEX_RELEASE_ASSERT(Window::CreateContext(), "Failed to create window context");
 
         RendererAPI::Init();
-
-        /// @todo Refactor this away
-        m_Pipeline = Pipeline::Create("Assets/Shaders/FlatColor.vert.spv", "Assets/Shaders/FlatColor.frag.spv");
     }
 
     Application::~Application()

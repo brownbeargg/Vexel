@@ -1,6 +1,6 @@
 #include "RendererAPI.hpp"
 
-#include "Platform/Vulkan/VulkanRendererAPI.hpp"
+#include "Platform/Vulkan/Renderer/VulkanRendererAPI.hpp"
 
 namespace Vex
 {
@@ -14,5 +14,13 @@ namespace Vex
         }
     }
 
-    void RendererAPI::Shutdown() {}
+    void RendererAPI::Shutdown()
+    {
+        switch (s_GraphicsAPI)
+        {
+        case GraphicsAPIs::Vulkan:
+            VulkanRendererAPI::Shutdown();
+            break;
+        }
+    }
 } // namespace Vex
