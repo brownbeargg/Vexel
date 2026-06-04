@@ -23,4 +23,7 @@ namespace Vex
             break;
         }
     }
+
+    /// @todo make rendererAPI swapbuffer function
+    void RendererAPI::SwapBuffers(Observer<Window> pWindow) {}
 } // namespace Vex

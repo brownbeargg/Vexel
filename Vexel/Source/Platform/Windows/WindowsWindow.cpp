@@ -1,42 +1,41 @@
 #include "WindowsWindow.hpp"
 
-#include <GLFW/glfw3.h>
-
 #include "Vexel/Events/ApplicationEvent.hpp"
 #include "Vexel/Events/KeyEvent.hpp"
 #include "Vexel/Events/MouseEvent.hpp"
 
+#include <GLFW/glfw3.h>
+
+#include <vulkan/vulkan_raii.hpp>
+
 namespace Vex
 {
-    static bool s_IsInitialized = false;
+    static bool s_IsContextInitialized = false;
 
     WindowsWindow::WindowsWindow(const WindowProps& props) : m_Data(props)
     {
-        VEX_RELEASE_ASSERT(s_IsInitialized, "Window context is not initialized");
+        VEX_RELEASE_ASSERT(s_IsContextInitialized, "Window context is not initialized");
 
-        m_Data.Self = Weak<Window>(this);
+        m_Data.Self = this;
+
+        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
         glfwWindowHint(GLFW_DECORATED, props.HasTitleBar);
         glfwWindowHint(GLFW_RESIZABLE, props.Resizable);
 
-        glfwSwapInterval(props.VSync);
         m_Window = glfwCreateWindow(props.Width, props.Height, props.Title.c_str(), nullptr, nullptr);
         glfwSetWindowUserPointer(m_Window, &m_Data);
 
         SetEventCallbacks();
 
         ++s_NumberOfWindows;
+        s_WindowInstances.push_back(this);
     }
 
     WindowsWindow::~WindowsWindow()
     {
         if (m_Window)
             Close();
-    }
-
-    void WindowsWindow::OnUpdate()
-    {
-        glfwSwapBuffers(m_Window);
     }
 
     void WindowsWindow::PollEvents()
@@ -55,12 +54,13 @@ namespace Vex
         m_Window = nullptr;
 
         --s_NumberOfWindows;
+        s_WindowInstances.erase(std::find(s_WindowInstances.begin(), s_WindowInstances.end(), this));
     }
 
+    /// @todo create this function for vulkan
     void WindowsWindow::SetVSync(bool enabled)
     {
         m_Data.VSync = enabled;
-        glfwSwapInterval(enabled);
     }
 
     void WindowsWindow::SetEventCallbacks()
@@ -145,19 +145,31 @@ namespace Vex
         {
             WindowData* data = static_cast<WindowData*>(glfwGetWindowUserPointer(window));
 
-            data->EventCallback(Scope<WindowMovedEvent>::Create(Weak<Window>(data->Self), xPos, yPos));
+            data->EventCallback(Scope<WindowMovedEvent>::Create(data->Self, xPos, yPos));
         });
+    }
+
+    VkResult WindowsWindow::CreateSurfaceVulkan(vk::raii::Instance& instance)
+    {
+        VkSurfaceKHR rawSurface;
+
+        VkResult res =
+            glfwCreateWindowSurface(static_cast<VkInstance>(*instance), m_Window, nullptr, &rawSurface);
+
+        m_Surface.Get() = vk::raii::SurfaceKHR(instance, rawSurface);
+
+        return res;
     }
 
     Ref<Window> Window::Create(const WindowProps& props)
     {
-        return Ref<Window>(new WindowsWindow(props));
+        return Ref<WindowsWindow>::Create(props);
     }
 
     bool Window::CreateContext()
     {
-        s_IsInitialized = glfwInit();
-        return s_IsInitialized;
+        s_IsContextInitialized = glfwInit();
+        return s_IsContextInitialized;
     }
 
     void Window::DestroyContext()

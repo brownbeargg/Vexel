@@ -17,6 +17,6 @@ namespace Vex
       private:
         static inline Ref<VulkanContext> m_Context = nullptr;
 
-        static inline VulkanLogicalDevice m_LogicalDevice = nullptr;
+        static inline VulkanDevice m_Device = nullptr;
     };
 } // namespace Vex

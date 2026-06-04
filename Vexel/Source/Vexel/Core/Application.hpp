@@ -15,7 +15,7 @@ namespace Vex
         void Run();
 
         virtual void PollEvents() = 0;
-        void ForwardEvent(Scope<Event> e) { m_EventBus.Queue(std::move(e)); }
+        void ForwardEvent(Scope<Event>&& e) { m_EventBus.Queue(std::move(e)); }
 
         virtual void OnUpdate() = 0;
 
@@ -27,10 +27,12 @@ namespace Vex
         void PopLayer(Layer* layer);
         void PopOverlay(Layer* overlay);
 
-        /**
-         * @brief this function will be defined in the client
-         */
-        static Application* Create();
+        static Application* Get() { return s_Instance; }
+
+        static const std::vector<Observer<Window>>& GetActiveWindows()
+        {
+            return Window::GetWindowInstances();
+        }
 
       protected:
         Application();
@@ -40,10 +42,21 @@ namespace Vex
       protected:
         EventBus m_EventBus;
 
+        /// @todo remove window in application class, this is for vulkan testing purposes, once our vulkan API
+        /// has matured this will not be used
+        Ref<Window> m_Window = nullptr;
+
       private:
+        /**
+         * @brief this function will be defined in the client
+         */
+        static Application* Create();
+
         bool ShouldFixedUpdate();
 
       private:
+        static Application* s_Instance;
+
         bool m_Running = true;
 
         DeltaTime m_Time = 0.0f;
@@ -53,5 +66,7 @@ namespace Vex
         const TimeStep m_FixedTimeStep = 1.0f / 60.0f;
 
         LayerStack m_LayerStack = Weak<Application>(this);
+
+        friend class Main;
     };
 } // namespace Vex

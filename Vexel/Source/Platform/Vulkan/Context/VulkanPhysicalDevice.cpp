@@ -1,14 +1,34 @@
 #include "VulkanPhysicalDevice.hpp"
+#include "Platform/Vulkan/Present/VulkanSurface.hpp"
 
 namespace Vex
 {
     VulkanPhysicalDevice::VulkanPhysicalDevice(VulkanInstance& instance,
-        const std::vector<const char*>& requiredDeviceExtensions, vk::raii::PhysicalDevice* pd)
+        const std::vector<const char*>& requiredDeviceExtensions, VulkanSurface& surface,
+        vk::raii::PhysicalDevice* pd)
     {
         if (!pd)
-            PickPhysicalDevice(instance.Instance(), requiredDeviceExtensions);
+            PickPhysicalDevice(instance.Get(), requiredDeviceExtensions);
         else
             m_PhysicalDevice = *pd;
+
+        m_QueueFamilies = m_QueueFamilies = m_PhysicalDevice.getQueueFamilyProperties();
+        for (uint32_t i{}; i < m_QueueFamilies.size(); ++i)
+        {
+            const vk::QueueFamilyProperties& family = m_QueueFamilies[i];
+
+            if (family.queueFlags & vk::QueueFlagBits::eGraphics)
+                m_QueueFamilyIndices.Graphics = i;
+
+            vk::Bool32 presentSupport = m_PhysicalDevice.getSurfaceSupportKHR(i, surface.Get());
+            if (presentSupport)
+                m_QueueFamilyIndices.Present = i;
+        }
+    }
+
+    vk::raii::Device VulkanPhysicalDevice::CreateLogicalDevice(vk::DeviceCreateInfo& createInfo)
+    {
+        return m_PhysicalDevice.createDevice(createInfo);
     }
 
     void VulkanPhysicalDevice::PickPhysicalDevice(

@@ -9,17 +9,23 @@
 
 namespace Vex
 {
-    class VulkanContext
+    class VulkanContext final
     {
       public:
         VulkanContext(nullptr_t) {}
 
-        static Ref<VulkanContext> Create() { return Ref(new VulkanContext); }
+        static Ref<VulkanContext> Create()
+        {
+            /// @todo make this support multiple windows
+            return Ref(new VulkanContext(Window::GetWindowInstances().at(0)));
+        }
 
         vk::raii::Context& Context() { return m_Context; }
 
+        VulkanInstance& GetInstance();
+
       private:
-        VulkanContext();
+        VulkanContext(Observer<Window>);
 
         std::vector<const char*> GetRequiredInstanceExtensions();
         std::vector<const char*> GetRequiredLayers();

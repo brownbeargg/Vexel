@@ -33,19 +33,19 @@ namespace Vex
 
         VEX_EVENT_CLASS_CATEGORY(EventCategory::App)
 
-        Weak<Window> GetWindow() { return m_Window; }
+        Observer<Window> GetWindow() { return m_Window; }
 
       protected:
-        WindowEvent(Weak<Window> window) : m_Window(window) {}
+        WindowEvent(Observer<Window> window) : m_Window(window) {}
 
       private:
-        Weak<Window> m_Window;
+        Observer<Window> m_Window;
     };
 
     class WindowClosedEvent final : public WindowEvent
     {
       public:
-        WindowClosedEvent(Weak<Window> window) : WindowEvent(window) {}
+        WindowClosedEvent(Observer<Window> window) : WindowEvent(window) {}
 
         VEX_EVENT_CLASS_TYPE(EventType::WindowClosed)
     };
@@ -53,7 +53,7 @@ namespace Vex
     class WindowResizedEvent final : public WindowEvent
     {
       public:
-        WindowResizedEvent(Weak<Window> window, uint32_t width, uint32_t height)
+        WindowResizedEvent(Observer<Window> window, uint32_t width, uint32_t height)
             : WindowEvent(window), m_Width(width), m_Height(height)
         {
         }
@@ -70,7 +70,7 @@ namespace Vex
     class WindowFocusedEvent final : public WindowEvent
     {
       public:
-        WindowFocusedEvent(Weak<Window> window) : WindowEvent(window) {}
+        WindowFocusedEvent(Observer<Window> window) : WindowEvent(window) {}
 
         VEX_EVENT_CLASS_TYPE(EventType::WindowFocused)
     };
@@ -78,7 +78,7 @@ namespace Vex
     class WindowLostFocusEvent final : public WindowEvent
     {
       public:
-        WindowLostFocusEvent(Weak<Window> window) : WindowEvent(window) {}
+        WindowLostFocusEvent(Observer<Window> window) : WindowEvent(window) {}
 
         VEX_EVENT_CLASS_TYPE(EventType::WindowLostFocus)
     };
@@ -86,7 +86,7 @@ namespace Vex
     class WindowMovedEvent final : public WindowEvent
     {
       public:
-        WindowMovedEvent(Weak<Window> window, int xPos, int yPos)
+        WindowMovedEvent(Observer<Window> window, int xPos, int yPos)
             : WindowEvent(window), m_XPos(xPos), m_YPos(yPos)
         {
         }

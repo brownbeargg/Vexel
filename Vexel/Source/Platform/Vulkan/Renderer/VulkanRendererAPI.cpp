@@ -9,7 +9,6 @@ namespace Vex
     void VulkanRendererAPI::Init()
     {
         m_Context = VulkanContext::Create();
-        m_LogicalDevice = VulkanLogicalDevice::Create();
     }
 
     void VulkanRendererAPI::Shutdown() {}

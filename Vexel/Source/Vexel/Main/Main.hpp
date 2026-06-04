@@ -2,8 +2,9 @@
 
 namespace Vex
 {
-    namespace Main
+    class Main
     {
-        void Main(int argc, char* argv[]);
+      public:
+        static void Run(int argc, char* argv[]);
     };
 } // namespace Vex

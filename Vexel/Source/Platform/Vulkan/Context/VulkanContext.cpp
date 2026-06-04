@@ -13,13 +13,19 @@ namespace Vex
 #endif
 
     std::vector<const char*> validationLayers = {"VK_LAYER_KHRONOS_validation"};
-    VulkanContext::VulkanContext()
+    VulkanContext::VulkanContext(Observer<Window> pWindow)
     {
         std::vector<const char*> requiredInstanceExtensions = GetRequiredInstanceExtensions();
         std::vector<const char*> requiredLayers = GetRequiredLayers();
 
         m_Instance = VulkanInstance::Create(*this, requiredInstanceExtensions, requiredLayers);
-        m_Device = VulkanDevice::Create(m_Instance);
+
+        /// @todo add support for multiple surfaces for multiple windows
+
+        pWindow->CreateSurfaceVulkan(m_Instance.Get());
+
+        m_Device =
+            VulkanDevice::Create(m_Instance, {vk::KHRSwapchainExtensionName}, pWindow->GetSurfaceVulkan());
     }
 
     std::vector<const char*> VulkanContext::GetRequiredInstanceExtensions()

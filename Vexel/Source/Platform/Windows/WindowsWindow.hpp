@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Platform/Vulkan/Present/VulkanSurface.hpp"
 #include "Vexel/Core/Window.hpp"
 
 struct GLFWwindow;
@@ -12,7 +13,6 @@ namespace Vex
         WindowsWindow(const WindowProps& props);
         ~WindowsWindow();
 
-        void OnUpdate() override;
         void PollEvents() override;
 
         bool ShouldClose() const override;
@@ -24,7 +24,10 @@ namespace Vex
         void SetVSync(bool enabled) override;
         bool IsVSync() const override { return m_Data.VSync; }
 
+        VkResult CreateSurfaceVulkan(vk::raii::Instance& instance) override;
+
         void* GetNativeWindow() const override { return m_Window; }
+        VulkanSurface& GetSurfaceVulkan() override { return m_Surface; }
 
         void SetEventCallbackFn(const EventCallbackFn& fn) override { m_Data.EventCallback = fn; }
 
@@ -34,7 +37,7 @@ namespace Vex
       private:
         struct WindowData
         {
-            Weak<Window> Self = {};
+            Observer<Window> Self = {};
 
             uint32_t Width, Height;
             int XPos, YPos;
@@ -58,5 +61,6 @@ namespace Vex
         WindowData m_Data;
 
         GLFWwindow* m_Window = nullptr;
+        VulkanSurface m_Surface = nullptr;
     };
 } // namespace Vex

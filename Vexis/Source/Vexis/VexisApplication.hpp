@@ -24,8 +24,5 @@ namespace Vex
                     Close();
             }
         }
-
-      private:
-        Ref<Window> m_Window;
     };
 } // namespace Vex

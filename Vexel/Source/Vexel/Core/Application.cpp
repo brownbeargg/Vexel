@@ -23,6 +23,9 @@ namespace Vex
 
         VEX_RELEASE_ASSERT(Window::CreateContext(), "Failed to create window context");
 
+        m_Window = Window::Create();
+        m_Window->SetEventCallbackFn(VEX_BIND_METHOD(ForwardEvent));
+
         RendererAPI::Init();
     }
 
@@ -50,6 +53,9 @@ namespace Vex
 
             PollEvents();
             m_EventBus.Dispatch();
+
+            for (Observer<Window> window : Window::GetWindowInstances())
+                RendererAPI::SwapBuffers(window);
         }
     }
 
@@ -87,4 +93,6 @@ namespace Vex
         m_LayerStack.PopLayer(overlay);
         overlay->OnDetach();
     }
+
+    Application* Application::s_Instance;
 } // namespace Vex
