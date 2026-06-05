@@ -14,6 +14,7 @@ namespace Vex
             VulkanLogicalDevice::Create(m_PhysicalDevice, m_PhysicalDevice.GetQueueFamilyIndices());
 
         /// @todo make swapchain be able to have multiple windows
-        m_SwapChain = VulkanSwapChain::Create(m_PhysicalDevice, Window::GetWindowInstances().at(0), surface);
+        m_SwapChain = VulkanSwapChain::Create(
+            m_PhysicalDevice, m_LogicalDevice, Window::GetWindowInstances().at(0), surface);
     }
 } // namespace Vex

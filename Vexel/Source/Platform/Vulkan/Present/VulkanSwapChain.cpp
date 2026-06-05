@@ -4,7 +4,7 @@ namespace Vex
 {
     /// @todo be able to have multiple Surfaces
     VulkanSwapChain::VulkanSwapChain(
-        VulkanPhysicalDevice& pd, Observer<Window> pWindow, VulkanSurface& surface)
+        VulkanPhysicalDevice& pd, VulkanLogicalDevice& device, Observer<Window> pWindow, VulkanSurface& surface)
         : m_PhysicalDevice(&pd)
     {
         ChooseSwapSurfaceFormat(surface);
@@ -26,6 +26,8 @@ namespace Vex
             .setCompositeAlpha(vk::CompositeAlphaFlagBitsKHR::eOpaque)
             .setPresentMode(m_PresentMode)
             .setClipped(true);
+
+        CreateImageViews(device);
     }
 
     void VulkanSwapChain::ChooseSwapSurfaceFormat(VulkanSurface& surface)
@@ -79,5 +81,21 @@ namespace Vex
             minImageCount = surfaceCapabilities.maxImageCount;
 
         return minImageCount;
+    }
+
+    void VulkanSwapChain::CreateImageViews(VulkanLogicalDevice& device)
+    {
+        VEX_RELEASE_ASSERT(m_ImageViews.empty(), "Image views already exist");
+
+        vk::ImageViewCreateInfo imageViewCreateInfo;
+        imageViewCreateInfo.setViewType(vk::ImageViewType::e2D)
+            .setFormat(m_SurfaceFormat.format)
+            .setSubresourceRange({vk::ImageAspectFlagBits::eColor, 1, 1, 0, 1});
+
+        for (vk::Image& image : m_Images)
+        {
+            imageViewCreateInfo.setImage(image);
+            m_ImageViews.emplace_back(device.Get(), imageViewCreateInfo);
+        }
     }
 } // namespace Vex
