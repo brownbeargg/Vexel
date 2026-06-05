@@ -4,8 +4,6 @@
 #include "Vexel/Events/KeyEvent.hpp"
 #include "Vexel/Events/MouseEvent.hpp"
 
-#include <GLFW/glfw3.h>
-
 #include <vulkan/vulkan_raii.hpp>
 
 namespace Vex
@@ -127,6 +125,7 @@ namespace Vex
         {
             WindowData* data = static_cast<WindowData*>(glfwGetWindowUserPointer(window));
 
+            /// @todo set swapchain extent width and height when resized
             data->EventCallback(Scope<WindowResizedEvent>::Create(data->Self, width, height));
         });
 
@@ -156,7 +155,7 @@ namespace Vex
         VkResult res =
             glfwCreateWindowSurface(static_cast<VkInstance>(*instance), m_Window, nullptr, &rawSurface);
 
-        m_Surface.Get() = vk::raii::SurfaceKHR(instance, rawSurface);
+        m_Surface = vk::raii::SurfaceKHR{instance, rawSurface};
 
         return res;
     }

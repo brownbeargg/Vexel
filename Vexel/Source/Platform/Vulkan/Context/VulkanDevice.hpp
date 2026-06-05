@@ -2,6 +2,7 @@
 
 #include "Platform/Vulkan/Context/VulkanLogicalDevice.hpp"
 #include "Platform/Vulkan/Context/VulkanPhysicalDevice.hpp"
+#include "Platform/Vulkan/Present/VulkanSwapChain.hpp"
 
 #include "Vexel/Core/Window.hpp"
 #include "Vexel/Utils.hpp"
@@ -38,5 +39,7 @@ namespace Vex
       private:
         VulkanPhysicalDevice m_PhysicalDevice = nullptr;
         VulkanLogicalDevice m_LogicalDevice = nullptr;
+
+        Ref<VulkanSwapChain> m_SwapChain = nullptr;
     };
 } // namespace Vex

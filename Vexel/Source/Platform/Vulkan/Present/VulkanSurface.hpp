@@ -14,6 +14,12 @@ namespace Vex
       public:
         VulkanSurface(nullptr_t) {}
 
+        VulkanSurface& operator=(vk::raii::SurfaceKHR&& rhs)
+        {
+            m_Surface = std::move(rhs);
+            return *this;
+        }
+
         vk::raii::SurfaceKHR& Get() { return m_Surface; }
 
       private:

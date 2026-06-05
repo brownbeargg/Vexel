@@ -3,7 +3,8 @@
 #include "Platform/Vulkan/Present/VulkanSurface.hpp"
 #include "Vexel/Core/Window.hpp"
 
-struct GLFWwindow;
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
 
 namespace Vex
 {
@@ -18,8 +19,13 @@ namespace Vex
         bool ShouldClose() const override;
         void Close() override;
 
-        uint32_t GetWidth() const override { return m_Data.Width; }
-        uint32_t GetHeight() const override { return m_Data.Height; }
+        u32 GetWidth() const override { return m_Data.Width; }
+        u32 GetHeight() const override { return m_Data.Height; }
+
+        void GetFrameBufferSize(int* width, int* height) const override
+        {
+            glfwGetFramebufferSize(m_Window, width, height);
+        }
 
         void SetVSync(bool enabled) override;
         bool IsVSync() const override { return m_Data.VSync; }

@@ -3,7 +3,6 @@
 #include "Platform/Vulkan/Context/VulkanInstance.hpp"
 #include "Platform/Vulkan/Context/VulkanLogicalDevice.hpp"
 #include "Platform/Vulkan/Present/VulkanSurface.hpp"
-#include "Vexel/Utils.hpp"
 
 #include <vulkan/vulkan_raii.hpp>
 
@@ -23,6 +22,21 @@ namespace Vex
 
         vk::raii::Device CreateLogicalDevice(vk::DeviceCreateInfo& createInfo);
         VulkanLogicalDevice::QueueFamilyIndices& GetQueueFamilyIndices() { return m_QueueFamilyIndices; }
+
+        std::vector<vk::SurfaceFormatKHR> AvailableSurfaceFormats(VulkanSurface& surface)
+        {
+            return m_PhysicalDevice.getSurfaceFormatsKHR(surface.Get());
+        }
+
+        std::vector<vk::PresentModeKHR> AvailbleSurfacePresentModes(VulkanSurface& surface)
+        {
+            return m_PhysicalDevice.getSurfacePresentModesKHR(surface.Get());
+        }
+
+        vk::SurfaceCapabilitiesKHR GetSurfaceCapablities(VulkanSurface& surface)
+        {
+            return m_PhysicalDevice.getSurfaceCapabilitiesKHR(surface.Get());
+        }
 
       private:
         VulkanPhysicalDevice(VulkanInstance& instance,

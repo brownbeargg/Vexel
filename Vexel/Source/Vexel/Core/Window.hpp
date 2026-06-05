@@ -33,8 +33,10 @@ namespace Vex
         virtual bool ShouldClose() const = 0;
         virtual void Close() = 0;
 
-        virtual uint32_t GetWidth() const = 0;
-        virtual uint32_t GetHeight() const = 0;
+        virtual u32 GetWidth() const = 0;
+        virtual u32 GetHeight() const = 0;
+
+        virtual void GetFrameBufferSize(int* width, int* height) const = 0;
 
         virtual void SetVSync(bool enabled) = 0;
         virtual bool IsVSync() const = 0;

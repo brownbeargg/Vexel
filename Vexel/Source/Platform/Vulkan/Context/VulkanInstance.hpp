@@ -22,7 +22,7 @@ namespace Vex
         vk::raii::Instance& Get() { return m_Instance; }
 
         // --------------------------------------------------------------------------------
-        // Ignore, this is the debug callback for vulkan
+        // Ignore the following, as it is the debug callback for Vulkan
         // --------------------------------------------------------------------------------
 
         static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
