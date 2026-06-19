@@ -1,15 +1,18 @@
 #include "VulkanRendererAPI.hpp"
 
-#include "Vexel/Utils.hpp"
+#include "Platform/Vulkan/Renderer/VulkanRenderCommand.hpp"
 
-#include <GLFW/glfw3.h>
+#include "Vexel/Utils.hpp"
 
 namespace Vex
 {
     void VulkanRendererAPI::Init()
     {
-        m_Context = VulkanContext::Create();
+        VulkanRenderCommand::Init();
     }
 
-    void VulkanRendererAPI::Shutdown() {}
+    void VulkanRendererAPI::Shutdown()
+    {
+        VulkanRenderCommand::Shutdown();
+    }
 } // namespace Vex

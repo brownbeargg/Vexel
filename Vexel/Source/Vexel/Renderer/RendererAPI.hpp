@@ -17,7 +17,7 @@ namespace Vex
 
         static GraphicsAPIs API() { return s_GraphicsAPI; }
 
-        static void SwapBuffers(Observer<Window> pWindow);
+        static void SwapBuffers(Observer<Window> pWindow) {}
 
       private:
         inline static GraphicsAPIs s_GraphicsAPI = GraphicsAPIs::Vulkan;

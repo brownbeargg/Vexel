@@ -1,0 +1,122 @@
+#include "VulkanSwapChain.hpp"
+
+#define GLFW_INCLUDE_VULKAN
+#include "GLFW/glfw3.h"
+
+namespace Vex
+{
+    VulkanSwapChain::VulkanSwapChain(vk::raii::Instance& instance, vk::raii::PhysicalDevice& physicalDevice,
+        vk::raii::Device& logicalDevice, Observer<Window> pWindow)
+        : m_Instance(instance), m_PhysicalDevice(physicalDevice), m_LogicalDevice(logicalDevice),
+          m_pWindow(pWindow)
+    {
+        CreateSurface();
+    }
+
+    void VulkanSwapChain::Invalidate()
+    {
+        m_ImageViews.clear();
+        m_SwapChain = nullptr;
+
+        CreateSwapChain();
+        CreateImageViews();
+    }
+
+    void VulkanSwapChain::CreateSurface()
+    {
+        VkSurfaceKHR rawSurface;
+        glfwCreateWindowSurface(
+            *m_Instance, static_cast<GLFWwindow*>(m_pWindow->GetNativeWindow()), nullptr, &rawSurface);
+
+        m_Surface = vk::raii::SurfaceKHR{m_Instance, rawSurface};
+    }
+
+    void VulkanSwapChain::CreateSwapChain()
+    {
+        vk::SurfaceCapabilitiesKHR surfaceCapabilities =
+            m_PhysicalDevice.getSurfaceCapabilitiesKHR(m_Surface);
+
+        // Choose imageCount
+        u32 minImageCount = std::max(3u, surfaceCapabilities.minImageCount);
+
+        if ((0 < surfaceCapabilities.maxImageCount) && (surfaceCapabilities.maxImageCount < minImageCount))
+            minImageCount = surfaceCapabilities.maxImageCount;
+
+        u32 imageCount = minImageCount;
+
+        // Choose swap chain extent
+        if (surfaceCapabilities.currentExtent.width != std::numeric_limits<u32>::max())
+            m_SwapChainExtent = surfaceCapabilities.currentExtent;
+        else
+        {
+            int width, height;
+            glfwGetFramebufferSize(static_cast<GLFWwindow*>(m_pWindow->GetNativeWindow()), &width, &height);
+
+            m_SwapChainExtent = vk::Extent2D{std::clamp<u32>(width, surfaceCapabilities.minImageExtent.width,
+                                                 surfaceCapabilities.maxImageExtent.width),
+                std::clamp<u32>(height, surfaceCapabilities.minImageExtent.height,
+                    surfaceCapabilities.maxImageExtent.height)};
+        }
+
+        // Choose format
+        std::vector<vk::SurfaceFormatKHR> availableFormats = m_PhysicalDevice.getSurfaceFormatsKHR(m_Surface);
+
+        auto formatIt = std::ranges::find_if(availableFormats, [](const auto& format)
+        {
+            return format.format == vk::Format::eB8G8R8A8Srgb &&
+                format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear;
+        });
+
+        m_SurfaceFormat = formatIt != availableFormats.end() ? *formatIt : availableFormats[0];
+
+        // Choose present mode
+        std::vector<vk::PresentModeKHR> availablePresentModes =
+            m_PhysicalDevice.getSurfacePresentModesKHR(m_Surface);
+
+        VEX_RELEASE_ASSERT(std::ranges::any_of(availablePresentModes,
+                               [](auto presentMode) { return presentMode == vk::PresentModeKHR::eFifo; }),
+            "Required present mode not available");
+
+        m_PresentMode = std::ranges::any_of(availablePresentModes, [](const vk::PresentModeKHR value)
+        { return vk::PresentModeKHR::eMailbox == value; })
+            ? vk::PresentModeKHR::eMailbox
+            : vk::PresentModeKHR::eFifo;
+
+        // Create swap chain
+        vk::SwapchainCreateInfoKHR createInfo = {};
+        createInfo.surface = *m_Surface;
+        createInfo.minImageCount = minImageCount;
+        createInfo.imageFormat = m_SurfaceFormat.format;
+        createInfo.imageColorSpace = m_SurfaceFormat.colorSpace;
+        createInfo.imageExtent = m_SwapChainExtent;
+        createInfo.imageArrayLayers = 1;
+        createInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
+        createInfo.imageSharingMode = vk::SharingMode::eExclusive;
+        createInfo.preTransform = surfaceCapabilities.currentTransform;
+        createInfo.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
+        createInfo.presentMode = m_PresentMode;
+        createInfo.clipped = true;
+
+        m_SwapChain = vk::raii::SwapchainKHR{m_LogicalDevice, createInfo};
+        m_Images = m_SwapChain.getImages();
+    }
+
+    void VulkanSwapChain::CreateImageViews()
+    {
+        VEX_RELEASE_ASSERT(m_ImageViews.empty(), "Swap chain image views already contains elements");
+
+        vk::ImageViewCreateInfo imageViewCreateInfo = {};
+        imageViewCreateInfo.viewType = vk::ImageViewType::e2D;
+        imageViewCreateInfo.format = m_SurfaceFormat.format;
+        imageViewCreateInfo.subresourceRange = {vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1};
+
+        imageViewCreateInfo.components = {vk::ComponentSwizzle::eIdentity, vk::ComponentSwizzle::eIdentity,
+            vk::ComponentSwizzle::eIdentity, vk::ComponentSwizzle::eIdentity};
+
+        for (vk::Image& image : m_Images)
+        {
+            imageViewCreateInfo.image = image;
+            m_ImageViews.emplace_back(m_LogicalDevice, imageViewCreateInfo);
+        }
+    }
+} // namespace Vex

@@ -1,10 +1,7 @@
 #pragma once
 
 #include "Platform/Vulkan/Context/VulkanContext.hpp"
-#include "Platform/Vulkan/Context/VulkanLogicalDevice.hpp"
 #include "Vexel/Renderer/RendererAPI.hpp"
-
-#include <vulkan/vulkan_raii.hpp>
 
 namespace Vex
 {
@@ -13,10 +10,5 @@ namespace Vex
       public:
         static void Init();
         static void Shutdown();
-
-      private:
-        static inline Ref<VulkanContext> m_Context = nullptr;
-
-        static inline VulkanDevice m_Device = nullptr;
     };
 } // namespace Vex

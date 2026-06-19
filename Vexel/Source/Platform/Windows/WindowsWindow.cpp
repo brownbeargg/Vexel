@@ -16,6 +16,8 @@ namespace Vex
 
         m_Data.Self = this;
 
+        m_RendererContext = RendererContext::Create(this);
+
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
         glfwWindowHint(GLFW_DECORATED, props.HasTitleBar);
@@ -24,15 +26,14 @@ namespace Vex
         m_Window = glfwCreateWindow(props.Width, props.Height, props.Title.c_str(), nullptr, nullptr);
         glfwSetWindowUserPointer(m_Window, &m_Data);
 
-        SetEventCallbacks();
+        m_RendererContext->Init();
 
-        ++s_NumberOfWindows;
-        s_WindowInstances.push_back(this);
+        SetEventCallbacks();
     }
 
     WindowsWindow::~WindowsWindow()
     {
-        if (m_Window)
+        if (m_Data.IsOpen)
             Close();
     }
 
@@ -43,16 +44,21 @@ namespace Vex
 
     bool WindowsWindow::ShouldClose() const
     {
-        return glfwWindowShouldClose(m_Window);
+        if (m_Data.IsOpen)
+            return glfwWindowShouldClose(m_Window);
+
+        return false;
     }
 
     void WindowsWindow::Close()
     {
         glfwDestroyWindow(m_Window);
         m_Window = nullptr;
+        m_Data.IsOpen = false;
 
         --s_NumberOfWindows;
-        s_WindowInstances.erase(std::find(s_WindowInstances.begin(), s_WindowInstances.end(), this));
+        s_WindowInstances.erase(
+            std::find(s_WindowInstances.begin(), s_WindowInstances.end(), Observer<Window>::Borrow(this)));
     }
 
     /// @todo create this function for vulkan
@@ -148,21 +154,14 @@ namespace Vex
         });
     }
 
-    VkResult WindowsWindow::CreateSurfaceVulkan(vk::raii::Instance& instance)
-    {
-        VkSurfaceKHR rawSurface;
-
-        VkResult res =
-            glfwCreateWindowSurface(static_cast<VkInstance>(*instance), m_Window, nullptr, &rawSurface);
-
-        m_Surface = vk::raii::SurfaceKHR{instance, rawSurface};
-
-        return res;
-    }
-
     Ref<Window> Window::Create(const WindowProps& props)
     {
-        return Ref<WindowsWindow>::Create(props);
+        auto res = Ref<WindowsWindow>::Create(props);
+
+        ++s_NumberOfWindows;
+        s_WindowInstances.push_back(res);
+
+        return std::move(res);
     }
 
     bool Window::CreateContext()

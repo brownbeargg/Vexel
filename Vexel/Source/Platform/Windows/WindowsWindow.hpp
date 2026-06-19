@@ -1,9 +1,8 @@
 #pragma once
 
-#include "Platform/Vulkan/Present/VulkanSurface.hpp"
 #include "Vexel/Core/Window.hpp"
+#include "Vexel/Renderer/RendererContext.hpp"
 
-#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
 namespace Vex
@@ -30,10 +29,9 @@ namespace Vex
         void SetVSync(bool enabled) override;
         bool IsVSync() const override { return m_Data.VSync; }
 
-        VkResult CreateSurfaceVulkan(vk::raii::Instance& instance) override;
+        bool IsOpen() const override { return m_Data.IsOpen; }
 
         void* GetNativeWindow() const override { return m_Window; }
-        VulkanSurface& GetSurfaceVulkan() override { return m_Surface; }
 
         void SetEventCallbackFn(const EventCallbackFn& fn) override { m_Data.EventCallback = fn; }
 
@@ -45,6 +43,8 @@ namespace Vex
         {
             Observer<Window> Self = {};
 
+            std::string Title;
+
             uint32_t Width, Height;
             int XPos, YPos;
 
@@ -53,13 +53,13 @@ namespace Vex
             bool HasTitleBar;
             bool Resizable;
 
-            std::string Title;
+            bool IsOpen = true;
 
             EventCallbackFn EventCallback = nullptr;
 
             WindowData(const WindowProps& props)
                 : Title(props.Title), Width(props.Width), Height(props.Height), XPos(props.XPos),
-                  YPos(props.YPos), Focus(props.Focus), HasTitleBar(props.HasTitleBar), VSync(props.VSync)
+                  YPos(props.YPos), Focus(props.Focus), VSync(props.VSync), HasTitleBar(props.HasTitleBar)
             {
             }
         };
@@ -67,6 +67,7 @@ namespace Vex
         WindowData m_Data;
 
         GLFWwindow* m_Window = nullptr;
-        VulkanSurface m_Surface = nullptr;
+
+        Ref<RendererContext> m_RendererContext = nullptr;
     };
 } // namespace Vex

@@ -2,6 +2,8 @@
 
 #include "Vexel/Core/Application.hpp"
 
+#include <vulkan/vulkan_raii.hpp>
+
 namespace Vex
 {
     void Main::Run(int argc, char* argv[])
@@ -20,10 +22,11 @@ int main(int argc, char* argv[])
     {
         Vex::Main::Run(argc, argv);
     }
-    catch (std::exception e)
+    catch (const std::exception& e)
     {
         std::cout << e.what();
         return EXIT_FAILURE;
     }
+
     return EXIT_SUCCESS;
 }

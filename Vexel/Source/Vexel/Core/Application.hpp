@@ -29,10 +29,7 @@ namespace Vex
 
         static Application* Get() { return s_Instance; }
 
-        static const std::vector<Observer<Window>>& GetActiveWindows()
-        {
-            return Window::GetWindowInstances();
-        }
+        static const std::vector<Ref<Window>>& GetActiveWindows() { return Window::GetWindowInstances(); }
 
       protected:
         Application();
@@ -41,10 +38,6 @@ namespace Vex
 
       protected:
         EventBus m_EventBus;
-
-        /// @todo remove window in application class, this is for vulkan testing purposes, once our vulkan API
-        /// has matured this will not be used
-        Ref<Window> m_Window = nullptr;
 
       private:
         /**

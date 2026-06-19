@@ -14,6 +14,8 @@ namespace Vex
     {
         Log::Init();
 
+        VEX_CORE_TRACE("Application initialization");
+
         FileSystem::Mount(RootDirectory::Binary, FileSystem::GetExecutableDir());
 
         FileSystem::Mount(RootDirectory::Build, FileSystem::GetBuildDir());
@@ -23,9 +25,6 @@ namespace Vex
 
         VEX_RELEASE_ASSERT(Window::CreateContext(), "Failed to create window context");
 
-        m_Window = Window::Create();
-        m_Window->SetEventCallbackFn(VEX_BIND_METHOD(ForwardEvent));
-
         RendererAPI::Init();
     }
 
@@ -33,10 +32,14 @@ namespace Vex
     {
         Window::DestroyContext();
         RendererAPI::Shutdown();
+
+        VEX_CORE_TRACE("Application shutdown");
     }
 
     void Application::Run()
     {
+        VEX_CORE_TRACE("Application loop");
+
         while (m_Running)
         {
             m_Time.Calculate(m_LastTime);
@@ -54,8 +57,8 @@ namespace Vex
             PollEvents();
             m_EventBus.Dispatch();
 
-            for (Observer<Window> window : Window::GetWindowInstances())
-                RendererAPI::SwapBuffers(window);
+            for (Ref<Window> window : GetActiveWindows())
+                RendererAPI::SwapBuffers(window.Get());
         }
     }
 

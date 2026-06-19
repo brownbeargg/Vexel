@@ -9,9 +9,10 @@ namespace Vex
         switch (s_GraphicsAPI)
         {
         case GraphicsAPIs::Vulkan:
-            VulkanRendererAPI::Init();
-            break;
+            return VulkanRendererAPI::Init();
         }
+
+        VEX_RELEASE_ASSERT(false, "Invalid graphics API");
     }
 
     void RendererAPI::Shutdown()
@@ -19,11 +20,9 @@ namespace Vex
         switch (s_GraphicsAPI)
         {
         case GraphicsAPIs::Vulkan:
-            VulkanRendererAPI::Shutdown();
-            break;
+            return VulkanRendererAPI::Shutdown();
         }
-    }
 
-    /// @todo make rendererAPI swapbuffer function
-    void RendererAPI::SwapBuffers(Observer<Window> pWindow) {}
+        VEX_RELEASE_ASSERT(false, "Invalid graphics API");
+    }
 } // namespace Vex

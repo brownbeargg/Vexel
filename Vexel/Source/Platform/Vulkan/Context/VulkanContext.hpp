@@ -1,39 +1,52 @@
 #pragma once
 
-#include "Platform/Vulkan/Context/VulkanDevice.hpp"
-#include "Platform/Vulkan/Context/VulkanInstance.hpp"
-
+#include "Platform/Vulkan/Context/VulkanSwapChain.hpp"
+#include "Vexel/Core/Window.hpp"
+#include "Vexel/Renderer/RendererContext.hpp"
 #include "Vexel/Utils.hpp"
 
 #include <vulkan/vulkan_raii.hpp>
 
 namespace Vex
 {
-    class VulkanContext final
+    namespace
+    {
+        struct VulkanContextTypes
+        {
+            vk::raii::Context Context;
+            vk::raii::Instance Instance = nullptr;
+            vk::raii::DebugUtilsMessengerEXT DebugMessenger = nullptr;
+            vk::raii::PhysicalDevice PhysicalDevice = nullptr;
+        };
+    } // namespace
+
+    class VulkanContext final : public RendererContext
     {
       public:
-        VulkanContext(nullptr_t) {}
+        VulkanContext(Observer<Window> pWindow) : m_pWindow(pWindow) {}
 
-        static Ref<VulkanContext> Create()
-        {
-            /// @todo make this support multiple windows
-            return Ref(new VulkanContext(Window::GetWindowInstances().at(0)));
-        }
+        void Init() override;
 
-        vk::raii::Context& Context() { return m_Context; }
-
-        VulkanInstance& GetInstance();
+        static void CreateContext();
 
       private:
-        VulkanContext(Observer<Window>);
+        static void CreateInstance();
+        static void SetupDebugMessenger();
+        static void SelectPhysicalDevice();
 
-        std::vector<const char*> GetRequiredInstanceExtensions();
-        std::vector<const char*> GetRequiredLayers();
+        void CreateLogicalDevice();
+        vk::DeviceQueueCreateInfo CreateQueue();
 
       private:
-        vk::raii::Context m_Context;
+        static inline VulkanContextTypes s_Context;
 
-        VulkanInstance m_Instance = nullptr;
-        VulkanDevice m_Device = nullptr;
+        vk::raii::Device m_LogicalDevice = nullptr;
+
+        u32 m_GraphicsQueueIndex = u32_max;
+        vk::raii::Queue m_GraphicsQueue = nullptr;
+
+        Ref<VulkanSwapChain> m_SwapChain;
+
+        Observer<Window> m_pWindow;
     };
 } // namespace Vex
