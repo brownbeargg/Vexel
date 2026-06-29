@@ -28,12 +28,14 @@ namespace Vex
         void Init() override;
 
         static void CreateContext();
+        static void DestroyContext();
 
         static vk::raii::PhysicalDevice& QueryPhysicalDevice() { return s_Context.PhysicalDevice; }
         static vk::raii::Instance& QueryInstance() { return s_Context.Instance; }
-        vk::raii::Device& QueryLogicalDevice() { return m_LogicalDevice; }
+        static vk::raii::Device& QueryLogicalDevice() { return s_LogicalDevice; }
 
-        vk::raii::Queue& QueryGraphicsQueue() { return m_GraphicsQueue; }
+        static vk::raii::Queue& QueryGraphicsQueue() { return s_GraphicsQueue; }
+        static vk::raii::Queue& QueryTransferQueue() { return s_TransferQueue; }
 
         static VulkanContextTypes& QueryContextTypes() { return s_Context; }
 
@@ -42,19 +44,19 @@ namespace Vex
         static void SetupDebugMessenger();
         static void SelectPhysicalDevice();
 
-        void CreateLogicalDevice();
-        vk::DeviceQueueCreateInfo CreateQueue();
+        static void CreateLogicalDevice(Ref<VulkanSwapChain> swapChain);
+        static vk::DeviceQueueCreateInfo CreateQueue(Ref<VulkanSwapChain> swapChain);
 
       private:
         static inline VulkanContextTypes s_Context;
 
-        vk::raii::Device m_LogicalDevice = nullptr;
+        static inline vk::raii::Device s_LogicalDevice = nullptr;
 
-        u32 m_GraphicsQueueIndex = u32_max;
-        vk::raii::Queue m_GraphicsQueue = nullptr;
+        static inline u32 s_GraphicsQueueIndex = u32_max;
+        static inline vk::raii::Queue s_GraphicsQueue = nullptr;
 
-        u32 m_TransferQueueIndex = u32_max;
-        vk::raii::Queue m_TransferQueue = nullptr;
+        static inline u32 s_TransferQueueIndex = u32_max;
+        static inline vk::raii::Queue s_TransferQueue = nullptr;
 
         Ref<VulkanSwapChain> m_SwapChain;
 

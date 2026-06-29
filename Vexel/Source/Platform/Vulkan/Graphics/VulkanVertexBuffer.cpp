@@ -2,9 +2,7 @@
 
 namespace Vex
 {
-    VulkanVertexBuffer::VulkanVertexBuffer() {
-        
-}
+    VulkanVertexBuffer::VulkanVertexBuffer() {}
 
     void VulkanVertexBuffer::Bind() const {}
 

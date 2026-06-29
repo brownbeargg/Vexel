@@ -48,8 +48,8 @@ target_include_directories(Vexel
 find_program(GLSLANG_VALIDATOR glslangValidator REQUIRED)
 
 set(SHADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/Assets/Shaders/FlatColor.vert
-    ${CMAKE_CURRENT_SOURCE_DIR}/Assets/Shaders/FlatColor.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/Assets/Shaders/Basic.vert
+    ${CMAKE_CURRENT_SOURCE_DIR}/Assets/Shaders/Basic.frag
 )
 
 set(COMPILED_SHADERS)

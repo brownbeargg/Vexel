@@ -6,14 +6,14 @@ namespace Vex
 {
     Application* Application::Create()
     {
-        return new VexisApplication;
+        VexisApplication* app = new VexisApplication;
+        app->PushLayer(new EditorLayer);
+        return std::move(app);
     }
 
     VexisApplication::VexisApplication() : Application()
     {
         m_EventBus.Observe<WindowClosedEvent>(VEX_BIND_METHOD(OnWindowClose));
-
-        PushLayer(new EditorLayer());
 
         for (u32 i{}; i < 1; ++i)
         {

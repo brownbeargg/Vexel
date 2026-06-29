@@ -31,6 +31,8 @@ namespace Vex
         FileSystem::Mount(
             RootDirectory::Engine, FileSystem::GetProjectRoot(FileSystem::GetExecutableDir()) / "Vexel");
 
+        FileSystem::Mount(RootDirectory::Assets, FileSystem::Resolve(RootDirectory::Build, "Assets"));
+
         VEX_RELEASE_ASSERT(Window::CreateContext(), "Failed to create window context");
 
         RendererAPI::Init();

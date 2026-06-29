@@ -11,8 +11,10 @@ namespace Vex
       public:
         virtual ~VertexBuffer() = default;
 
-        virtual void Bind() const;
-        virtual void Unbind() const;
+        virtual void Bind() const = 0;
+        virtual void Unbind() const = 0;
+
+        static Ref<VertexBuffer> Create();
 
       protected:
         VertexBuffer() = default;

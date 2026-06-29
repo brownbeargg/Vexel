@@ -24,17 +24,16 @@ namespace Vex
     void VulkanContext::Init()
     {
         m_SwapChain = Ref<VulkanSwapChain>::Create(
-            s_Context.Instance, s_Context.PhysicalDevice, m_LogicalDevice, m_pWindow);
+            s_Context.Instance, s_Context.PhysicalDevice, s_LogicalDevice, m_pWindow);
 
-        CreateLogicalDevice();
+        CreateLogicalDevice(m_SwapChain);
 
         m_SwapChain->Invalidate();
     }
 
+    static bool s_InitializedContext = false;
     void VulkanContext::CreateContext()
     {
-        static bool s_InitializedContext = false;
-
         VEX_RELEASE_ASSERT(!s_InitializedContext, "Context already exists");
         s_InitializedContext = true;
 
@@ -44,6 +43,17 @@ namespace Vex
         CreateInstance();
         SetupDebugMessenger();
         SelectPhysicalDevice();
+    }
+
+    void VulkanContext::DestroyContext()
+    {
+        s_TransferQueue = nullptr;
+        s_TransferQueueIndex = u32_max;
+        s_GraphicsQueue = nullptr;
+        s_GraphicsQueueIndex = u32_max;
+        s_LogicalDevice = nullptr;
+
+        s_InitializedContext = false;
     }
 
     void VulkanContext::CreateInstance()
@@ -125,21 +135,31 @@ namespace Vex
 
         if (!picked)
             s_Context.PhysicalDevice = availablePds.back();
+
+        VEX_CORE_INFO(
+            "Using physical device: {}", s_Context.PhysicalDevice.getProperties().deviceName.data());
+
+        VEX_CORE_INFO("Available device extensions:");
+        for (vk::ExtensionProperties& ext : s_Context.PhysicalDevice.enumerateDeviceExtensionProperties())
+            VEX_CORE_INFO("\t{}", ext.extensionName.data());
     }
 
-    void VulkanContext::CreateLogicalDevice()
+    void VulkanContext::CreateLogicalDevice(Ref<VulkanSwapChain> swapChain)
     {
-        vk::DeviceQueueCreateInfo queueCreateInfo = CreateQueue();
+        vk::DeviceQueueCreateInfo queueCreateInfo = CreateQueue(swapChain);
 
         vk::StructureChain<vk::PhysicalDeviceFeatures2, vk::PhysicalDeviceVulkan11Features,
-            vk::PhysicalDeviceVulkan13Features, vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>
+            vk::PhysicalDeviceVulkan13Features, vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT,
+            vk::PhysicalDeviceShaderObjectFeaturesEXT>
             featureChain{vk::PhysicalDeviceFeatures2{},
                 vk::PhysicalDeviceVulkan11Features{}.setShaderDrawParameters(VK_TRUE),
                 vk::PhysicalDeviceVulkan13Features{}.setDynamicRendering(VK_TRUE).setSynchronization2(
                     VK_TRUE),
-                vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT{}.setExtendedDynamicState(VK_TRUE)};
+                vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT{}.setExtendedDynamicState(VK_TRUE),
+                vk::PhysicalDeviceShaderObjectFeaturesEXT{}.setShaderObject(VK_TRUE)};
 
-        std::vector<const char*> requiredDeviceExtensions = {vk::KHRSwapchainExtensionName};
+        std::vector<const char*> requiredDeviceExtensions = {
+            vk::KHRSwapchainExtensionName, "VK_EXT_shader_object"};
 
         vk::DeviceCreateInfo createInfo = {};
         createInfo.setPNext(&featureChain.get<vk::PhysicalDeviceFeatures2>())
@@ -148,15 +168,15 @@ namespace Vex
             .setEnabledExtensionCount(static_cast<u32>(requiredDeviceExtensions.size()))
             .setPpEnabledExtensionNames(requiredDeviceExtensions.data());
 
-        m_LogicalDevice = vk::raii::Device{
+        s_LogicalDevice = vk::raii::Device{
             s_Context.PhysicalDevice,
             createInfo,
         };
 
-        m_GraphicsQueue = vk::raii::Queue{m_LogicalDevice, m_GraphicsQueueIndex, 0};
+        s_GraphicsQueue = vk::raii::Queue{s_LogicalDevice, s_GraphicsQueueIndex, 0};
     }
 
-    vk::DeviceQueueCreateInfo VulkanContext::CreateQueue()
+    vk::DeviceQueueCreateInfo VulkanContext::CreateQueue(Ref<VulkanSwapChain> swapChain)
     {
         std::vector<vk::QueueFamilyProperties> queueFamilyProperties =
             s_Context.PhysicalDevice.getQueueFamilyProperties();
@@ -164,30 +184,30 @@ namespace Vex
         for (u32 i{}; i < queueFamilyProperties.size(); ++i)
         {
             if ((queueFamilyProperties[i].queueFlags & vk::QueueFlagBits::eGraphics) &&
-                s_Context.PhysicalDevice.getSurfaceSupportKHR(i, m_SwapChain->GetSurface()) &&
-                m_GraphicsQueueIndex == u32_max)
+                s_Context.PhysicalDevice.getSurfaceSupportKHR(i, swapChain->GetSurface()) &&
+                s_GraphicsQueueIndex == u32_max)
             {
-                m_GraphicsQueueIndex = i;
+                s_GraphicsQueueIndex = i;
                 continue;
             }
 
             if (queueFamilyProperties[i].queueFlags & vk::QueueFlagBits::eTransfer &&
-                m_TransferQueueIndex == u32_max)
+                s_TransferQueueIndex == u32_max)
             {
-                m_TransferQueueIndex = i;
+                s_TransferQueueIndex = i;
                 continue;
             }
         }
 
-        VEX_RELEASE_ASSERT(m_GraphicsQueueIndex != u32_max,
+        VEX_RELEASE_ASSERT(s_GraphicsQueueIndex != u32_max,
             "Failed to find a queue that supports both graphics and present");
 
-        VEX_RELEASE_ASSERT(m_TransferQueueIndex != u32_max, "Failed to find a queue that supports transfer");
+        VEX_RELEASE_ASSERT(s_TransferQueueIndex != u32_max, "Failed to find a queue that supports transfer");
 
         float queuePriority = 0.5f;
 
         vk::DeviceQueueCreateInfo queueCreateInfo = {};
-        queueCreateInfo.queueFamilyIndex = m_GraphicsQueueIndex;
+        queueCreateInfo.queueFamilyIndex = s_GraphicsQueueIndex;
         queueCreateInfo.queueCount = 1;
         queueCreateInfo.pQueuePriorities = &queuePriority;
 
@@ -218,6 +238,10 @@ namespace Vex
 
             if (s_EnableInfoLogs)
             {
+                VEX_CORE_INFO("Available extensions:");
+                for (vk::ExtensionProperties& ext : context.enumerateInstanceExtensionProperties())
+                    VEX_CORE_INFO("\t{}", ext.extensionName.data());
+
                 VEX_CORE_INFO("Required extensions:");
                 for (const char* ext : requiredExtensions)
                     VEX_CORE_INFO("\t{}", ext);

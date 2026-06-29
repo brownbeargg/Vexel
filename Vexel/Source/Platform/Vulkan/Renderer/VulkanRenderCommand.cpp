@@ -9,5 +9,8 @@ namespace Vex
         VulkanContext::CreateContext();
     }
 
-    void VulkanRenderCommand::Shutdown() {}
+    void VulkanRenderCommand::Shutdown()
+    {
+        VulkanContext::DestroyContext();
+    }
 } // namespace Vex

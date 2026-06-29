@@ -21,3 +21,12 @@
 
 /* Utils */
 #include "Vexel/Utils.hpp"
+
+/* Graphics */
+#include "Vexel/Graphics/VertexBuffer.hpp"
+#include "Vexel/Graphics/VertexData.hpp"
+#include "Vexel/Graphics/Shader.hpp"
+
+/* Renderer */
+#include "Vexel/Renderer/RendererAPI.hpp"
+#include "Vexel/Renderer/RendererTypes.hpp"
