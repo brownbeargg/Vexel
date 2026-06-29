@@ -15,8 +15,11 @@ namespace Vex
 
         PushLayer(new EditorLayer());
 
-        m_Windows.push_back(Window::Create());
-        m_Windows.back()->SetEventCallbackFn(VEX_BIND_METHOD(ForwardEvent));
+        for (u32 i{}; i < 1; ++i)
+        {
+            m_Windows.push_back(Window::Create());
+            m_Windows.back()->SetEventCallbackFn(VEX_BIND_METHOD(ForwardEvent));
+        }
     }
 
     VexisApplication::~VexisApplication() {}

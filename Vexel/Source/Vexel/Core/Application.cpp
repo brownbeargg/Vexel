@@ -10,31 +10,9 @@
 
 namespace Vex
 {
-    Application::Application()
-    {
-        Log::Init();
+    Application::Application() {}
 
-        VEX_CORE_TRACE("Application initialization");
-
-        FileSystem::Mount(RootDirectory::Binary, FileSystem::GetExecutableDir());
-
-        FileSystem::Mount(RootDirectory::Build, FileSystem::GetBuildDir());
-
-        FileSystem::Mount(
-            RootDirectory::Engine, FileSystem::GetProjectRoot(FileSystem::GetExecutableDir()) / "Vexel");
-
-        VEX_RELEASE_ASSERT(Window::CreateContext(), "Failed to create window context");
-
-        RendererAPI::Init();
-    }
-
-    Application::~Application()
-    {
-        Window::DestroyContext();
-        RendererAPI::Shutdown();
-
-        VEX_CORE_TRACE("Application shutdown");
-    }
+    Application::~Application() {}
 
     void Application::Run()
     {

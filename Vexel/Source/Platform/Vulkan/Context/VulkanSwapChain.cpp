@@ -25,8 +25,9 @@ namespace Vex
     void VulkanSwapChain::CreateSurface()
     {
         VkSurfaceKHR rawSurface;
-        glfwCreateWindowSurface(
-            *m_Instance, static_cast<GLFWwindow*>(m_pWindow->GetNativeWindow()), nullptr, &rawSurface);
+        VEX_VERIFY(glfwCreateWindowSurface(*m_Instance,
+                       static_cast<GLFWwindow*>(m_pWindow->GetNativeWindow()), nullptr, &rawSurface),
+            "Failed to create window surface");
 
         m_Surface = vk::raii::SurfaceKHR{m_Instance, rawSurface};
     }
@@ -36,51 +37,10 @@ namespace Vex
         vk::SurfaceCapabilitiesKHR surfaceCapabilities =
             m_PhysicalDevice.getSurfaceCapabilitiesKHR(m_Surface);
 
-        // Choose imageCount
-        u32 minImageCount = std::max(3u, surfaceCapabilities.minImageCount);
-
-        if ((0 < surfaceCapabilities.maxImageCount) && (surfaceCapabilities.maxImageCount < minImageCount))
-            minImageCount = surfaceCapabilities.maxImageCount;
-
-        u32 imageCount = minImageCount;
-
-        // Choose swap chain extent
-        if (surfaceCapabilities.currentExtent.width != std::numeric_limits<u32>::max())
-            m_SwapChainExtent = surfaceCapabilities.currentExtent;
-        else
-        {
-            int width, height;
-            glfwGetFramebufferSize(static_cast<GLFWwindow*>(m_pWindow->GetNativeWindow()), &width, &height);
-
-            m_SwapChainExtent = vk::Extent2D{std::clamp<u32>(width, surfaceCapabilities.minImageExtent.width,
-                                                 surfaceCapabilities.maxImageExtent.width),
-                std::clamp<u32>(height, surfaceCapabilities.minImageExtent.height,
-                    surfaceCapabilities.maxImageExtent.height)};
-        }
-
-        // Choose format
-        std::vector<vk::SurfaceFormatKHR> availableFormats = m_PhysicalDevice.getSurfaceFormatsKHR(m_Surface);
-
-        auto formatIt = std::ranges::find_if(availableFormats, [](const auto& format)
-        {
-            return format.format == vk::Format::eB8G8R8A8Srgb &&
-                format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear;
-        });
-
-        m_SurfaceFormat = formatIt != availableFormats.end() ? *formatIt : availableFormats[0];
-
-        // Choose present mode
-        std::vector<vk::PresentModeKHR> availablePresentModes =
-            m_PhysicalDevice.getSurfacePresentModesKHR(m_Surface);
-
-        VEX_RELEASE_ASSERT(std::ranges::any_of(availablePresentModes,
-                               [](auto presentMode) { return presentMode == vk::PresentModeKHR::eFifo; }),
-            "Required present mode not available");
-
-        m_PresentMode = std::ranges::any_of(availablePresentModes, [](const vk::PresentModeKHR value)
-        { return vk::PresentModeKHR::eMailbox == value; })
-            ? vk::PresentModeKHR::eMailbox
-            : vk::PresentModeKHR::eFifo;
+        u32 minImageCount = ChooseImageCount(surfaceCapabilities);
+        ChooseExtent(surfaceCapabilities);
+        ChooseFormat();
+        ChoosePresentMode();
 
         // Create swap chain
         vk::SwapchainCreateInfoKHR createInfo = {};
@@ -118,5 +78,59 @@ namespace Vex
             imageViewCreateInfo.image = image;
             m_ImageViews.emplace_back(m_LogicalDevice, imageViewCreateInfo);
         }
+    }
+
+    u32 VulkanSwapChain::ChooseImageCount(vk::SurfaceCapabilitiesKHR& surfaceCapabilities)
+    {
+        u32 minImageCount = std::max(3u, surfaceCapabilities.minImageCount);
+
+        if ((0 < surfaceCapabilities.maxImageCount) && (surfaceCapabilities.maxImageCount < minImageCount))
+            minImageCount = surfaceCapabilities.maxImageCount;
+
+        return minImageCount;
+    }
+
+    void VulkanSwapChain::ChooseExtent(vk::SurfaceCapabilitiesKHR& surfaceCapabilities)
+    {
+        if (surfaceCapabilities.currentExtent.width != std::numeric_limits<u32>::max())
+            m_SwapChainExtent = surfaceCapabilities.currentExtent;
+        else
+        {
+            int width, height;
+            glfwGetFramebufferSize(static_cast<GLFWwindow*>(m_pWindow->GetNativeWindow()), &width, &height);
+
+            m_SwapChainExtent = vk::Extent2D{std::clamp<u32>(width, surfaceCapabilities.minImageExtent.width,
+                                                 surfaceCapabilities.maxImageExtent.width),
+                std::clamp<u32>(height, surfaceCapabilities.minImageExtent.height,
+                    surfaceCapabilities.maxImageExtent.height)};
+        }
+    }
+
+    void VulkanSwapChain::ChooseFormat()
+    {
+        std::vector<vk::SurfaceFormatKHR> availableFormats = m_PhysicalDevice.getSurfaceFormatsKHR(m_Surface);
+
+        auto formatIt = std::ranges::find_if(availableFormats, [](const auto& format)
+        {
+            return format.format == vk::Format::eB8G8R8A8Srgb &&
+                format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear;
+        });
+
+        m_SurfaceFormat = formatIt != availableFormats.end() ? *formatIt : availableFormats[0];
+    }
+
+    void VulkanSwapChain::ChoosePresentMode()
+    {
+        std::vector<vk::PresentModeKHR> availablePresentModes =
+            m_PhysicalDevice.getSurfacePresentModesKHR(m_Surface);
+
+        VEX_RELEASE_ASSERT(std::ranges::any_of(availablePresentModes,
+                               [](auto presentMode) { return presentMode == vk::PresentModeKHR::eFifo; }),
+            "Required present mode not available");
+
+        m_PresentMode = std::ranges::any_of(availablePresentModes, [](const vk::PresentModeKHR value)
+        { return vk::PresentModeKHR::eMailbox == value; })
+            ? vk::PresentModeKHR::eMailbox
+            : vk::PresentModeKHR::eFifo;
     }
 } // namespace Vex

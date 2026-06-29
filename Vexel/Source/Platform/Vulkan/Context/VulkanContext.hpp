@@ -29,6 +29,14 @@ namespace Vex
 
         static void CreateContext();
 
+        static vk::raii::PhysicalDevice& QueryPhysicalDevice() { return s_Context.PhysicalDevice; }
+        static vk::raii::Instance& QueryInstance() { return s_Context.Instance; }
+        vk::raii::Device& QueryLogicalDevice() { return m_LogicalDevice; }
+
+        vk::raii::Queue& QueryGraphicsQueue() { return m_GraphicsQueue; }
+
+        static VulkanContextTypes& QueryContextTypes() { return s_Context; }
+
       private:
         static void CreateInstance();
         static void SetupDebugMessenger();
@@ -44,6 +52,9 @@ namespace Vex
 
         u32 m_GraphicsQueueIndex = u32_max;
         vk::raii::Queue m_GraphicsQueue = nullptr;
+
+        u32 m_TransferQueueIndex = u32_max;
+        vk::raii::Queue m_TransferQueue = nullptr;
 
         Ref<VulkanSwapChain> m_SwapChain;
 

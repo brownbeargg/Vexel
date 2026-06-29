@@ -27,7 +27,7 @@ namespace Vex
         void PopLayer(Layer* layer);
         void PopOverlay(Layer* overlay);
 
-        static Application* Get() { return s_Instance; }
+        static Application* Instance() { return s_Instance; }
 
         static const std::vector<Ref<Window>>& GetActiveWindows() { return Window::GetWindowInstances(); }
 

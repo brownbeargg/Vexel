@@ -164,15 +164,25 @@ namespace Vex
         for (u32 i{}; i < queueFamilyProperties.size(); ++i)
         {
             if ((queueFamilyProperties[i].queueFlags & vk::QueueFlagBits::eGraphics) &&
-                s_Context.PhysicalDevice.getSurfaceSupportKHR(i, m_SwapChain->GetSurface()))
+                s_Context.PhysicalDevice.getSurfaceSupportKHR(i, m_SwapChain->GetSurface()) &&
+                m_GraphicsQueueIndex == u32_max)
             {
                 m_GraphicsQueueIndex = i;
-                break;
+                continue;
+            }
+
+            if (queueFamilyProperties[i].queueFlags & vk::QueueFlagBits::eTransfer &&
+                m_TransferQueueIndex == u32_max)
+            {
+                m_TransferQueueIndex = i;
+                continue;
             }
         }
 
         VEX_RELEASE_ASSERT(m_GraphicsQueueIndex != u32_max,
             "Failed to find a queue that supports both graphics and present");
+
+        VEX_RELEASE_ASSERT(m_TransferQueueIndex != u32_max, "Failed to find a queue that supports transfer");
 
         float queuePriority = 0.5f;
 

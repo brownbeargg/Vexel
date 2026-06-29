@@ -26,6 +26,11 @@ namespace Vex
         void CreateSwapChain();
         void CreateImageViews();
 
+        u32 ChooseImageCount(vk::SurfaceCapabilitiesKHR& surfaceCapabilities);
+        void ChooseExtent(vk::SurfaceCapabilitiesKHR& surfaceCapabilities);
+        void ChooseFormat();
+        void ChoosePresentMode();
+
       private:
         vk::raii::Instance& m_Instance;
         vk::raii::PhysicalDevice& m_PhysicalDevice;
