@@ -1,0 +1,23 @@
+#pragma once
+
+#include "Vexel/Renderer/RendererTypes.hpp"
+
+#include "Vexel/Renderer/RendererAPI.hpp"
+
+namespace Vex
+{
+    class VertexBuffer
+    {
+      public:
+        virtual ~VertexBuffer() = default;
+
+        virtual void Bind() const;
+        virtual void Unbind() const;
+
+      protected:
+        VertexBuffer() = default;
+
+      protected:
+        RendererID m_RendererID = u32_max;
+    };
+} // namespace Vex
