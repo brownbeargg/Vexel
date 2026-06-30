@@ -1,15 +1,15 @@
 #pragma once
 
+#include "Platform/Vulkan/Context/VulkanContext.hpp"
+
 #include <vulkan/vulkan_raii.hpp>
 
 namespace Vex
 {
     struct VulkanBufferInput
     {
-        u32 Size = 0;
+        size_t Size = 0;
         vk::BufferUsageFlags Usage;
-        vk::raii::Device& LogicalDevice;
-        vk::PhysicalDevice PhysicalDevice;
     };
 
     class VulkanBuffer
@@ -19,12 +19,15 @@ namespace Vex
         vk::raii::DeviceMemory Memory = nullptr;
 
       public:
-        VulkanBuffer();
+        VulkanBuffer() = default;
         VulkanBuffer(const VulkanBufferInput& input);
+        ~VulkanBuffer() { VulkanContext::QueryLogicalDevice().waitIdle(); }
+
+        VulkanBuffer(const VulkanBuffer& other) = delete;
+        VulkanBuffer& operator=(const VulkanBuffer& other) = delete;
 
       private:
-        u32 FindMemoryTypeIndex(
-            vk::PhysicalDevice pd, u32 supportedMemoryIndices, vk::MemoryPropertyFlags requestedProperties);
+        u32 FindMemoryTypeIndex(u32 supportedMemoryIndices, vk::MemoryPropertyFlags requestedProperties);
 
         // TODO: Allocate staging buffer first
         void Allocate(const VulkanBufferInput& input);

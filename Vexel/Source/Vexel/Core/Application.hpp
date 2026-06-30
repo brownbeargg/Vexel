@@ -5,6 +5,8 @@
 #include "Vexel/Events/ApplicationEvent.hpp"
 #include "Vexel/Utils.hpp"
 
+#include <glm/glm.hpp>
+
 namespace Vex
 {
     class Application
@@ -38,6 +40,8 @@ namespace Vex
 
       protected:
         EventBus m_EventBus;
+
+        glm::vec3 m_ClearColor = glm::vec3(0.8f, 0.1f, 0.6f);
 
       private:
         /**

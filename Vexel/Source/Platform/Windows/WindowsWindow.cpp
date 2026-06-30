@@ -27,6 +27,7 @@ namespace Vex
         glfwSetWindowUserPointer(m_Window, &m_Data);
 
         m_RendererContext->Init();
+        m_RendererContext->MakeContextCurrent();
 
         SetEventCallbacks();
     }

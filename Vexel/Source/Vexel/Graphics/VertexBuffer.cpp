@@ -4,12 +4,12 @@
 
 namespace Vex
 {
-    Ref<VertexBuffer> VertexBuffer::Create()
+    Ref<VertexBuffer> VertexBuffer::Create(const std::vector<VertexData>& vertices)
     {
         switch (RendererAPI::API())
         {
         case GraphicsAPIs::Vulkan:
-            Ref<VulkanVertexBuffer>::Create();
+            return Ref<VulkanVertexBuffer>::Create(vertices);
         }
 
         VEX_RELEASE_ASSERT(false, "Unknown renderer API");

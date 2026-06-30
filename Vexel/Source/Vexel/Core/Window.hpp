@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Vexel/Renderer/RendererContext.hpp"
 #include "Vexel/Utils.hpp"
 
 namespace Vex
@@ -53,6 +54,8 @@ namespace Vex
 
         static bool CreateContext();
         static void DestroyContext();
+
+        virtual Ref<RendererContext> GetRendererContext() = 0;
 
       protected:
         static inline uint8_t s_NumberOfWindows = 0;

@@ -6,10 +6,7 @@
 
 namespace Vex
 {
-    namespace
-    {
-        static constexpr u32 s_MaxFramesInFlight = 2;
-    }
+    static constexpr u32 s_MaxFramesInFlight = 2;
 
     class VulkanSwapChain final
     {
@@ -21,12 +18,27 @@ namespace Vex
 
         vk::raii::SurfaceKHR& GetSurface() { return m_Surface; }
 
+        vk::ImageView GetImageView(u32 imageIndex) { return m_ImageViews[imageIndex]; }
+        vk::Image GetImage(u32 imageIndex) { return m_Images[imageIndex]; }
+        vk::Extent2D GetExtent() { return m_Extent; }
+
+        static constexpr u32 MaxFramesInFlight() { return s_MaxFramesInFlight; }
+
+        static u32 GetImageCount() { return s_ImageCount; }
+
+        std::pair<vk::Result, uint32_t> AcquireNextImage(vk::Semaphore semaphore)
+        {
+            return m_SwapChain.acquireNextImage(u64_max, semaphore, nullptr);
+        }
+
+        vk::raii::SwapchainKHR& GetVulkanObject() { return m_SwapChain; }
+
       private:
         void CreateSurface();
         void CreateSwapChain();
         void CreateImageViews();
 
-        u32 ChooseImageCount(vk::SurfaceCapabilitiesKHR& surfaceCapabilities);
+        void ChooseImageCount(vk::SurfaceCapabilitiesKHR& surfaceCapabilities);
         void ChooseExtent(vk::SurfaceCapabilitiesKHR& surfaceCapabilities);
         void ChooseFormat();
         void ChoosePresentMode();
@@ -38,17 +50,17 @@ namespace Vex
 
         Observer<Window> m_pWindow;
 
-        u32 m_FrameIndex = 0;
-
         vk::raii::SurfaceKHR m_Surface = nullptr;
         vk::SurfaceFormatKHR m_SurfaceFormat;
 
         vk::PresentModeKHR m_PresentMode;
-        vk::Extent2D m_SwapChainExtent;
+        vk::Extent2D m_Extent;
 
         vk::raii::SwapchainKHR m_SwapChain = nullptr;
 
         std::vector<vk::Image> m_Images;
         std::vector<vk::raii::ImageView> m_ImageViews;
+
+        static inline u32 s_ImageCount = 0;
     };
 } // namespace Vex

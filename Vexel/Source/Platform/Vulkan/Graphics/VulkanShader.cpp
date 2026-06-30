@@ -75,4 +75,17 @@ namespace Vex
         m_VertexShader = std::move(result[0]);
         m_FragmentShader = std::move(result[1]);
     }
+
+    void VulkanShader::Bind() const
+    {
+        VulkanContext::QueryGraphicsCommandBuffer().bindShadersEXT(
+            {vk::ShaderStageFlagBits::eVertex, vk::ShaderStageFlagBits::eFragment},
+            {m_VertexShader, m_FragmentShader});
+    }
+
+    void VulkanShader::Unbind() const
+    {
+        VulkanContext::QueryGraphicsCommandBuffer().bindShadersEXT(
+            {vk::ShaderStageFlagBits::eVertex, vk::ShaderStageFlagBits::eFragment}, {nullptr, nullptr});
+    }
 } // namespace Vex

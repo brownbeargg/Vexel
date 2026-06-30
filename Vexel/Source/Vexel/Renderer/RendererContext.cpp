@@ -16,4 +16,9 @@ namespace Vex
             }
         }
     }
+
+    VulkanContext* RendererContext::ToVulkanContext()
+    {
+        return (VulkanContext*)this;
+    }
 } // namespace Vex

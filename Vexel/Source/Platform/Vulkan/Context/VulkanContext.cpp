@@ -4,6 +4,8 @@
 
 #include <GLFW/glfw3.h>
 
+#include "Platform/Vulkan/Renderer/VulkanRenderCommand.hpp"
+
 namespace Vex
 {
     namespace
@@ -11,7 +13,7 @@ namespace Vex
         static constexpr bool s_EnableInfoLogs = true;
 
         static constexpr bool s_EnableValidationLayers = true;
-        static std::vector<const char*> s_ValidationLayers = {"VK_LAYER_KHRONOS_validation"};
+        std::vector<const char*> s_ValidationLayers = {"VK_LAYER_KHRONOS_validation"};
 
         std::vector<const char*> GetRequiredInstanceExtensions(vk::raii::Context& context);
         std::vector<const char*> GetRequiredInstanceLayers(vk::raii::Context& context);
@@ -19,6 +21,9 @@ namespace Vex
         VKAPI_ATTR VkBool32 VKAPI_CALL VulkanDebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
             VkDebugUtilsMessageTypeFlagsEXT type, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
             void* pUserData);
+
+        bool s_InitializedContext = false;
+        bool s_InitializedLogicalContext = false;
     } // namespace
 
     void VulkanContext::Init()
@@ -26,12 +31,23 @@ namespace Vex
         m_SwapChain = Ref<VulkanSwapChain>::Create(
             s_Context.Instance, s_Context.PhysicalDevice, s_LogicalDevice, m_pWindow);
 
-        CreateLogicalDevice(m_SwapChain);
+        if (!s_InitializedLogicalContext)
+        {
+            CreateLogicalDevice(m_SwapChain);
+            CreateCommandPools();
+            CreateCommandBuffers();
+            m_SwapChain->Invalidate();
+            CreateSyncObjects();
+            s_InitializedLogicalContext = true;
+        }
+        else
+        {
+            m_SwapChain->Invalidate();
+        }
 
-        m_SwapChain->Invalidate();
+        VEX_CORE_TRACE("Initialized context for window");
     }
 
-    static bool s_InitializedContext = false;
     void VulkanContext::CreateContext()
     {
         VEX_RELEASE_ASSERT(!s_InitializedContext, "Context already exists");
@@ -43,14 +59,24 @@ namespace Vex
         CreateInstance();
         SetupDebugMessenger();
         SelectPhysicalDevice();
+
+        VEX_CORE_TRACE("Initialized global context");
     }
 
     void VulkanContext::DestroyContext()
     {
+        s_LogicalDevice.waitIdle();
+
+        s_TransferCommandBuffer = nullptr;
+        s_TransferCommandPool = nullptr;
         s_TransferQueue = nullptr;
         s_TransferQueueIndex = u32_max;
+
+        s_GraphicsCommandBuffers.clear();
+        s_GraphicsCommandPool = nullptr;
         s_GraphicsQueue = nullptr;
         s_GraphicsQueueIndex = u32_max;
+
         s_LogicalDevice = nullptr;
 
         s_InitializedContext = false;
@@ -146,7 +172,7 @@ namespace Vex
 
     void VulkanContext::CreateLogicalDevice(Ref<VulkanSwapChain> swapChain)
     {
-        vk::DeviceQueueCreateInfo queueCreateInfo = CreateQueue(swapChain);
+        std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos = CreateQueue(swapChain);
 
         vk::StructureChain<vk::PhysicalDeviceFeatures2, vk::PhysicalDeviceVulkan11Features,
             vk::PhysicalDeviceVulkan13Features, vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT,
@@ -163,8 +189,8 @@ namespace Vex
 
         vk::DeviceCreateInfo createInfo = {};
         createInfo.setPNext(&featureChain.get<vk::PhysicalDeviceFeatures2>())
-            .setQueueCreateInfoCount(1)
-            .setPQueueCreateInfos(&queueCreateInfo)
+            .setQueueCreateInfoCount(queueCreateInfos.size())
+            .setPQueueCreateInfos(queueCreateInfos.data())
             .setEnabledExtensionCount(static_cast<u32>(requiredDeviceExtensions.size()))
             .setPpEnabledExtensionNames(requiredDeviceExtensions.data());
 
@@ -174,9 +200,10 @@ namespace Vex
         };
 
         s_GraphicsQueue = vk::raii::Queue{s_LogicalDevice, s_GraphicsQueueIndex, 0};
+        s_TransferQueue = vk::raii::Queue{s_LogicalDevice, s_TransferQueueIndex, 0};
     }
 
-    vk::DeviceQueueCreateInfo VulkanContext::CreateQueue(Ref<VulkanSwapChain> swapChain)
+    std::vector<vk::DeviceQueueCreateInfo> VulkanContext::CreateQueue(Ref<VulkanSwapChain> swapChain)
     {
         std::vector<vk::QueueFamilyProperties> queueFamilyProperties =
             s_Context.PhysicalDevice.getQueueFamilyProperties();
@@ -206,12 +233,78 @@ namespace Vex
 
         float queuePriority = 0.5f;
 
-        vk::DeviceQueueCreateInfo queueCreateInfo = {};
-        queueCreateInfo.queueFamilyIndex = s_GraphicsQueueIndex;
-        queueCreateInfo.queueCount = 1;
-        queueCreateInfo.pQueuePriorities = &queuePriority;
+        vk::DeviceQueueCreateInfo graphicsQueueCreateInfo = {};
+        graphicsQueueCreateInfo.queueFamilyIndex = s_GraphicsQueueIndex;
+        graphicsQueueCreateInfo.queueCount = 1;
+        graphicsQueueCreateInfo.pQueuePriorities = &queuePriority;
 
-        return std::move(queueCreateInfo);
+        vk::DeviceQueueCreateInfo TransferQueueCreateInfo = {};
+        TransferQueueCreateInfo.queueFamilyIndex = s_TransferQueueIndex;
+        TransferQueueCreateInfo.queueCount = 1;
+        TransferQueueCreateInfo.pQueuePriorities = &queuePriority;
+
+        return {graphicsQueueCreateInfo, TransferQueueCreateInfo};
+    }
+
+    void VulkanContext::CreateCommandPools()
+    {
+        /* From Vulkan
+         *
+         *typedef struct VkCommandPoolCreateInfo {
+         *    VkStructureType             sType;
+         *    const void*                 pNext;
+         *    VkCommandPoolCreateFlags    flags;
+         *    uint32_t                    queueFamilyIndex;
+         *} VkCommandPoolCreateInfo;
+         */
+
+        vk::CommandPoolCreateInfo poolInfo = {};
+        poolInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
+        poolInfo.queueFamilyIndex = s_GraphicsQueueIndex;
+
+        s_GraphicsCommandPool = vk::raii::CommandPool{s_LogicalDevice, poolInfo};
+
+        poolInfo.queueFamilyIndex = s_TransferQueueIndex;
+        s_TransferCommandPool = vk::raii::CommandPool{s_LogicalDevice, poolInfo};
+    }
+
+    void VulkanContext::CreateCommandBuffers()
+    {
+        vk::CommandBufferAllocateInfo allocInfo = {};
+        allocInfo.commandPool = s_GraphicsCommandPool;
+        allocInfo.level = vk::CommandBufferLevel::ePrimary;
+        allocInfo.commandBufferCount = VulkanSwapChain::MaxFramesInFlight();
+
+        s_GraphicsCommandBuffers = vk::raii::CommandBuffers{s_LogicalDevice, allocInfo};
+
+        allocInfo.commandPool = s_TransferCommandPool;
+        allocInfo.commandBufferCount = 1;
+
+        s_TransferCommandBuffer = std::move(vk::raii::CommandBuffers{s_LogicalDevice, allocInfo}.front());
+    }
+
+    void VulkanContext::CreateSyncObjects()
+    {
+        VEX_RELEASE_ASSERT(VulkanRenderCommand::s_PresentCompleteSemaphores.empty() &&
+                VulkanRenderCommand::s_RenderFinishedSemaphores.empty() &&
+                VulkanRenderCommand::s_InFlightFences.empty(),
+            "Sync objects already exist");
+
+        vk::SemaphoreCreateInfo semaphoreInfo = {};
+        vk::FenceCreateInfo fenceInfo = {};
+        fenceInfo.flags = vk::FenceCreateFlagBits::eSignaled;
+
+        VEX_CORE_WARN("\t\t{}", VulkanSwapChain::GetImageCount());
+        for (u32 i{}; i < VulkanSwapChain::GetImageCount(); ++i)
+        {
+            VulkanRenderCommand::s_RenderFinishedSemaphores.emplace_back(s_LogicalDevice, semaphoreInfo);
+        }
+
+        for (u32 i{}; i < VulkanSwapChain::MaxFramesInFlight(); ++i)
+        {
+            VulkanRenderCommand::s_PresentCompleteSemaphores.emplace_back(s_LogicalDevice, semaphoreInfo);
+            VulkanRenderCommand::s_InFlightFences.emplace_back(s_LogicalDevice, fenceInfo);
+        }
     }
 
     namespace

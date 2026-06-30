@@ -25,4 +25,22 @@ namespace Vex
 
         VEX_RELEASE_ASSERT(false, "Invalid graphics API");
     }
+
+    void RendererAPI::BeginFrame(const glm::vec3& clearColor)
+    {
+        switch (s_GraphicsAPI)
+        {
+        case GraphicsAPIs::Vulkan:
+            VulkanRendererAPI::BeginFrame(clearColor);
+        }
+    }
+
+    void RendererAPI::EndFrame()
+    {
+        switch (s_GraphicsAPI)
+        {
+        case GraphicsAPIs::Vulkan:
+            VulkanRendererAPI::EndFrame();
+        }
+    }
 } // namespace Vex

@@ -10,8 +10,8 @@ namespace Vex
         VulkanShader(RootDirectory root, const std::filesystem::path& vertexPath,
             const std::filesystem::path& fragmentPath);
 
-        void Bind() const override {}
-        void Unbind() const override {}
+        void Bind() const override;
+        void Unbind() const override;
 
       private:
         vk::raii::ShaderEXT m_VertexShader = nullptr;

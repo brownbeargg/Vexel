@@ -1,5 +1,7 @@
 #include "VulkanBuffer.hpp"
 
+#include "Platform/Vulkan/Context/VulkanContext.hpp"
+
 namespace Vex
 {
     VulkanBuffer::VulkanBuffer(const VulkanBufferInput& input)
@@ -24,15 +26,17 @@ namespace Vex
         bufferInfo.usage = input.Usage;
         bufferInfo.sharingMode = vk::SharingMode::eExclusive;
 
-        Buffer = input.LogicalDevice.createBuffer(bufferInfo);
+        Buffer = VulkanContext::QueryLogicalDevice().createBuffer(bufferInfo);
+
         Allocate(input);
     }
 
     u32 VulkanBuffer::FindMemoryTypeIndex(
-        vk::PhysicalDevice pd, u32 supportedMemoryIndices, vk::MemoryPropertyFlags requestedProperties)
+        u32 supportedMemoryIndices, vk::MemoryPropertyFlags requestedProperties)
     {
+        vk::raii::PhysicalDevice& pd = VulkanContext::QueryPhysicalDevice();
         vk::PhysicalDeviceMemoryProperties memoryProperties = pd.getMemoryProperties();
-        for (u32 i{}; i < memoryProperties; ++i)
+        for (u32 i{}; i < memoryProperties.memoryTypeCount; ++i)
         {
             bool supported = supportedMemoryIndices & VEX_BIT(i);
             bool sufficient =
@@ -49,13 +53,15 @@ namespace Vex
     {
         vk::MemoryRequirements memoryRequirements = Buffer.getMemoryRequirements();
 
-        vk::MemoryAllocateInfo allocInfo;
-        allocInfo.allocationSize = memoryRequirements.size;
-        allocInfo.memoryTypeIndex =
-            FindMemoryTypeIndex(input.PhysicalDevice, memoryRequirements.memoryTypeBits,
-                vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+        u32 memTypeIndex = FindMemoryTypeIndex(memoryRequirements.memoryTypeBits,
+            vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
 
-        Memory = input.LogicalDevice.allocateMemory(allocInfo);
+        VEX_RELEASE_ASSERT(memTypeIndex != u32_max, "Failed to find suitable memory type index");
+
+        vk::MemoryAllocateInfo allocInfo = {};
+        allocInfo.allocationSize = memoryRequirements.size;
+        allocInfo.memoryTypeIndex = memTypeIndex;
+        Memory = VulkanContext::QueryLogicalDevice().allocateMemory(allocInfo);
         Buffer.bindMemory(Memory, 0);
     }
 } // namespace Vex

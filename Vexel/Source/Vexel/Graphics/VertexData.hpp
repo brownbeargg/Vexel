@@ -15,5 +15,8 @@ namespace Vex
     {
         glm::vec3 Position;
         glm::vec3 Color;
+
+        VertexData()=default;
+        VertexData(const glm::vec3& position, const glm::vec3& color) : Position(position), Color(color) {}
     };
 } // namespace Vex

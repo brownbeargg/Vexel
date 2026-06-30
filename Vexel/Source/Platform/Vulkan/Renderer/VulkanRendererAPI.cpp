@@ -15,4 +15,14 @@ namespace Vex
     {
         VulkanRenderCommand::Shutdown();
     }
+
+    void VulkanRendererAPI::BeginFrame(const glm::vec3& clearColor)
+    {
+        VulkanRenderCommand::BeginFrame(clearColor);
+    }
+
+    void VulkanRendererAPI::EndFrame()
+    {
+        VulkanRenderCommand::EndFrame();
+    }
 } // namespace Vex

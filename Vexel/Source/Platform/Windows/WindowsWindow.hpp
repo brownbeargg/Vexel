@@ -35,6 +35,8 @@ namespace Vex
 
         void SetEventCallbackFn(const EventCallbackFn& fn) override { m_Data.EventCallback = fn; }
 
+        Ref<RendererContext> GetRendererContext() override { return m_RendererContext; }
+
       private:
         void SetEventCallbacks();
 

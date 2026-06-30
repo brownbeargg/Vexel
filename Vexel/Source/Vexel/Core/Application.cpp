@@ -17,11 +17,15 @@ namespace Vex
     void Application::Run()
     {
         VEX_CORE_TRACE("Application loop");
+        VEX_RELEASE_ASSERT(
+            Window::GetNumberOfWindows() > 0, "Must have a window initialized before application loop");
 
         while (m_Running)
         {
             m_Time.Calculate(m_LastTime);
             m_TimeAccumulator += m_Time.Sec();
+
+            RendererAPI::BeginFrame(m_ClearColor);
 
             while (ShouldFixedUpdate())
                 for (Layer* layer : m_LayerStack)
@@ -31,6 +35,8 @@ namespace Vex
                 layer->OnUpdate(m_Time);
 
             OnUpdate();
+
+            RendererAPI::EndFrame();
 
             PollEvents();
             m_EventBus.Dispatch();

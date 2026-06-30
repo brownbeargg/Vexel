@@ -37,7 +37,9 @@ namespace Vex
         vk::SurfaceCapabilitiesKHR surfaceCapabilities =
             m_PhysicalDevice.getSurfaceCapabilitiesKHR(m_Surface);
 
-        u32 minImageCount = ChooseImageCount(surfaceCapabilities);
+        if (!s_ImageCount)
+            ChooseImageCount(surfaceCapabilities);
+
         ChooseExtent(surfaceCapabilities);
         ChooseFormat();
         ChoosePresentMode();
@@ -45,10 +47,10 @@ namespace Vex
         // Create swap chain
         vk::SwapchainCreateInfoKHR createInfo = {};
         createInfo.surface = *m_Surface;
-        createInfo.minImageCount = minImageCount;
+        createInfo.minImageCount = s_ImageCount;
         createInfo.imageFormat = m_SurfaceFormat.format;
         createInfo.imageColorSpace = m_SurfaceFormat.colorSpace;
-        createInfo.imageExtent = m_SwapChainExtent;
+        createInfo.imageExtent = m_Extent;
         createInfo.imageArrayLayers = 1;
         createInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
         createInfo.imageSharingMode = vk::SharingMode::eExclusive;
@@ -80,27 +82,27 @@ namespace Vex
         }
     }
 
-    u32 VulkanSwapChain::ChooseImageCount(vk::SurfaceCapabilitiesKHR& surfaceCapabilities)
+    void VulkanSwapChain::ChooseImageCount(vk::SurfaceCapabilitiesKHR& surfaceCapabilities)
     {
         u32 minImageCount = std::max(3u, surfaceCapabilities.minImageCount);
 
         if ((0 < surfaceCapabilities.maxImageCount) && (surfaceCapabilities.maxImageCount < minImageCount))
             minImageCount = surfaceCapabilities.maxImageCount;
 
-        return minImageCount;
+        s_ImageCount = minImageCount;
     }
 
     void VulkanSwapChain::ChooseExtent(vk::SurfaceCapabilitiesKHR& surfaceCapabilities)
     {
         if (surfaceCapabilities.currentExtent.width != std::numeric_limits<u32>::max())
-            m_SwapChainExtent = surfaceCapabilities.currentExtent;
+            m_Extent = surfaceCapabilities.currentExtent;
         else
         {
             int width, height;
             glfwGetFramebufferSize(static_cast<GLFWwindow*>(m_pWindow->GetNativeWindow()), &width, &height);
 
-            m_SwapChainExtent = vk::Extent2D{std::clamp<u32>(width, surfaceCapabilities.minImageExtent.width,
-                                                 surfaceCapabilities.maxImageExtent.width),
+            m_Extent = vk::Extent2D{std::clamp<u32>(width, surfaceCapabilities.minImageExtent.width,
+                                        surfaceCapabilities.maxImageExtent.width),
                 std::clamp<u32>(height, surfaceCapabilities.minImageExtent.height,
                     surfaceCapabilities.maxImageExtent.height)};
         }
