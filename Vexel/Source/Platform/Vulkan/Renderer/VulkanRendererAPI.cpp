@@ -4,8 +4,18 @@
 
 #include "Vexel/Utils.hpp"
 
+#include "Vexel/Graphics/VertexBuffer.hpp"
+#include "Vexel/Graphics/IndexBuffer.hpp"
+
 namespace Vex
 {
+    void VulkanRendererAPI::DrawIndexed(Ref<VertexBuffer> vertexBuffer, Ref<IndexBuffer> indexBuffer)
+    {
+        vertexBuffer->Bind();
+        indexBuffer->Bind();
+        VulkanRenderCommand::DrawIndexed(vertexBuffer, indexBuffer);
+    }
+
     void VulkanRendererAPI::Init()
     {
         VulkanRenderCommand::Init();

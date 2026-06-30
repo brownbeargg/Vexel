@@ -6,6 +6,9 @@
 
 namespace Vex
 {
+class VertexBuffer;
+class IndexBuffer;
+
     enum class GraphicsAPIs
     {
         Vulkan
@@ -14,6 +17,8 @@ namespace Vex
     class RendererAPI
     {
       public:
+        static void DrawIndexed(Ref<VertexBuffer> vertexBuffer, Ref<IndexBuffer> indexBuffer);
+
         static void Init();
         static void Shutdown();
 

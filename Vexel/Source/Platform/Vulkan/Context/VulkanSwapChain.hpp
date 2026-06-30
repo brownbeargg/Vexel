@@ -33,6 +33,8 @@ namespace Vex
 
         vk::raii::SwapchainKHR& GetVulkanObject() { return m_SwapChain; }
 
+        vk::SurfaceFormatKHR& GetFormat() { return m_SurfaceFormat; }
+
       private:
         void CreateSurface();
         void CreateSwapChain();

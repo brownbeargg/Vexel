@@ -26,6 +26,25 @@ namespace Vex
         VulkanBuffer(const VulkanBuffer& other) = delete;
         VulkanBuffer& operator=(const VulkanBuffer& other) = delete;
 
+        VulkanBuffer(VulkanBuffer&& rhs)
+        {
+            if (&rhs == this)
+                return;
+
+            Buffer = std::move(rhs.Buffer);
+            Memory = std::move(rhs.Memory);
+        }
+
+        VulkanBuffer& operator=(VulkanBuffer&& rhs)
+        {
+            if (&rhs == this)
+                return *this;
+
+            Buffer = std::move(rhs.Buffer);
+            Memory = std::move(rhs.Memory);
+
+            return *this;
+        }
       private:
         u32 FindMemoryTypeIndex(u32 supportedMemoryIndices, vk::MemoryPropertyFlags requestedProperties);
 

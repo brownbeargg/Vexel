@@ -14,7 +14,10 @@ namespace Vex
         void Unbind() const override;
 
       private:
-        vk::raii::ShaderEXT m_VertexShader = nullptr;
-        vk::raii::ShaderEXT m_FragmentShader = nullptr;
+        vk::raii::ShaderModule CreateShaderModule(const std::vector<char>& code) const;
+
+      private:
+        vk::raii::Pipeline m_Pipeline = nullptr;
+        vk::raii::PipelineLayout m_PipelineLayout = nullptr;
     };
 } // namespace Vex

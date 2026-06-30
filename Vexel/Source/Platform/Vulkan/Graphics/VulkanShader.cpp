@@ -2,6 +2,8 @@
 
 #include "Platform/Vulkan/Context/VulkanContext.hpp"
 
+#include "Platform/Vulkan/Graphics/VulkanVertexData.hpp"
+
 namespace Vex
 {
     // TODO: Move to VexelUtils
@@ -22,70 +24,168 @@ namespace Vex
         return std::move(buffer);
     }
 
-    static std::vector<u32> ReadSpirv(RootDirectory root, const std::filesystem::path& path)
+    static std::vector<char> ReadSpirv(RootDirectory root, const std::filesystem::path& path)
     {
         std::vector<char> bytes = ReadFile(root, path);
 
         VEX_RELEASE_ASSERT(bytes.size() % 4 == 0, "SPIR-V size is not multiple of 4");
 
-        std::vector<u32> words(bytes.size() / 4);
-        std::memcpy(words.data(), bytes.data(), bytes.size());
-        return std::move(words);
+        return bytes;
     }
 
     VulkanShader::VulkanShader(RootDirectory root, const std::filesystem::path& vertexPath,
         const std::filesystem::path& fragmentPath)
     {
-        vk::ShaderCreateFlagsEXT flags = vk::ShaderCreateFlagBitsEXT::eLinkStage;
-        vk::ShaderStageFlags nextStage = vk::ShaderStageFlagBits::eFragment;
-        vk::ShaderCodeTypeEXT codeType = vk::ShaderCodeTypeEXT::eSpirv;
+        vk::raii::ShaderModule vertModule = CreateShaderModule(ReadSpirv(root, vertexPath));
+        vk::raii::ShaderModule fragModule = CreateShaderModule(ReadSpirv(root, fragmentPath));
 
-        std::vector<u32> vertSrc = ReadSpirv(root, vertexPath);
-        const char* pName = "main";
+        vk::PipelineShaderStageCreateInfo vertStage = {};
+        vertStage.stage = vk::ShaderStageFlagBits::eVertex;
+        vertStage.module = vertModule;
+        vertStage.pName = "main";
 
-        vk::ShaderCreateInfoEXT vertexInfo = {};
-        vertexInfo.flags = flags;
-        vertexInfo.stage = vk::ShaderStageFlagBits::eVertex;
-        vertexInfo.nextStage = nextStage;
-        vertexInfo.codeType = codeType;
-        vertexInfo.codeSize = vertSrc.size() * sizeof(u32);
-        vertexInfo.pCode = vertSrc.data();
-        vertexInfo.pName = pName;
+        vk::PipelineShaderStageCreateInfo fragStage = {};
+        fragStage.stage = vk::ShaderStageFlagBits::eFragment;
+        fragStage.module = fragModule;
+        fragStage.pName = "main";
 
-        std::vector<u32> fragSrc = ReadSpirv(root, fragmentPath);
+        std::array<vk::PipelineShaderStageCreateInfo, 2> shaderStages = {vertStage, fragStage};
 
-        vk::ShaderCreateInfoEXT fragmentInfo = {};
-        fragmentInfo.flags = flags;
-        fragmentInfo.stage = vk::ShaderStageFlagBits::eFragment;
-        fragmentInfo.codeType = codeType;
-        fragmentInfo.codeSize = fragSrc.size() * sizeof(u32);
-        fragmentInfo.pCode = fragSrc.data();
-        fragmentInfo.pName = pName;
+        /* From Vulkan
+         *
+         *typedef struct VkGraphicsPipelineCreateInfo {
+         *    VkStructureType                                  sType;
+         *    const void*                                      pNext;
+         *    VkPipelineCreateFlags                            flags;
+         *    uint32_t                                         stageCount;
+         *    const VkPipelineShaderStageCreateInfo*           pStages;
+         *    const VkPipelineVertexInputStateCreateInfo*      pVertexInputState;
+         *    const VkPipelineInputAssemblyStateCreateInfo*    pInputAssemblyState;
+         *    const VkPipelineTessellationStateCreateInfo*     pTessellationState;
+         *    const VkPipelineViewportStateCreateInfo*         pViewportState;
+         *    const VkPipelineRasterizationStateCreateInfo*    pRasterizationState;
+         *    const VkPipelineMultisampleStateCreateInfo*      pMultisampleState;
+         *    const VkPipelineDepthStencilStateCreateInfo*     pDepthStencilState;
+         *    const VkPipelineColorBlendStateCreateInfo*       pColorBlendState;
+         *    const VkPipelineDynamicStateCreateInfo*          pDynamicState;
+         *    VkPipelineLayout                                 layout;
+         *    VkRenderPass                                     renderPass;
+         *    uint32_t                                         subpass;
+         *    VkPipeline                                       basePipelineHandle;
+         *    int32_t                                          basePipelineIndex;
+         *} VkGraphicsPipelineCreateInfo;
+         */
 
-        std::array<vk::ShaderCreateInfoEXT, 2> shaderInfos = {std::move(vertexInfo), std::move(fragmentInfo)};
+        vk::VertexInputBindingDescription bindingDesc = VulkanVertexData::GetVertexBindingDescription();
+        std::array<vk::VertexInputAttributeDescription, 2> attributeDescriptions =
+            VulkanVertexData::GetVertexAttributeDescriptions();
 
-        vk::raii::Device& logicalDevice = VulkanContext::QueryLogicalDevice();
+        vk::PipelineVertexInputStateCreateInfo vertexInputInfo = {};
+        vertexInputInfo.vertexBindingDescriptionCount = 1;
+        vertexInputInfo.pVertexBindingDescriptions = &bindingDesc;
+        vertexInputInfo.vertexAttributeDescriptionCount = attributeDescriptions.size();
+        vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
-        VEX_RELEASE_ASSERT(logicalDevice.getDispatcher(), "Failed to find Vulkan dynamic dispatcher");
-        VEX_RELEASE_ASSERT(
-            logicalDevice.getDispatcher()->vkCreateShadersEXT, "Failed to find shader create function");
+        std::vector<vk::DynamicState> dynamicStates = {
+            vk::DynamicState::eViewport, vk::DynamicState::eScissor};
 
-        std::vector<vk::raii::ShaderEXT> result = logicalDevice.createShadersEXT(shaderInfos);
+        vk::PipelineDynamicStateCreateInfo dynamicState = {};
+        dynamicState.dynamicStateCount = dynamicStates.size();
+        dynamicState.pDynamicStates = dynamicStates.data();
 
-        m_VertexShader = std::move(result[0]);
-        m_FragmentShader = std::move(result[1]);
+        vk::PipelineInputAssemblyStateCreateInfo inputAssembly = {};
+        inputAssembly.topology = vk::PrimitiveTopology::eTriangleList;
+
+        vk::Extent2D extent = VulkanContext::GetCurrentVulkanContext()->GetSwapChain()->GetExtent();
+
+        vk::Viewport viewport = vk::Viewport{
+            0.0f, 0.0f, static_cast<float>(extent.width), static_cast<float>(extent.height), 0.0f, 1.0f};
+
+        vk::Rect2D scissor = {vk::Offset2D{0, 0}, extent};
+
+        vk::PipelineViewportStateCreateInfo viewportState = {};
+        viewportState.viewportCount = 1;
+        viewportState.pViewports = &viewport;
+        viewportState.scissorCount = 1;
+        viewportState.pScissors = &scissor;
+
+        vk::PipelineRasterizationStateCreateInfo rasterizer = {};
+        rasterizer.depthClampEnable = vk::False;
+        rasterizer.rasterizerDiscardEnable = vk::False;
+        rasterizer.polygonMode = vk::PolygonMode::eFill;
+
+        // TODO: set culling
+        rasterizer.cullMode = vk::CullModeFlagBits::eNone;
+        rasterizer.frontFace = vk::FrontFace::eCounterClockwise;
+        rasterizer.depthBiasEnable = vk::False;
+        rasterizer.lineWidth = 1.0f;
+
+        vk::PipelineMultisampleStateCreateInfo multiSampling = {};
+        multiSampling.rasterizationSamples = vk::SampleCountFlagBits::e1;
+        multiSampling.sampleShadingEnable = vk::False;
+
+        vk::PipelineColorBlendAttachmentState colorBlendAttachment = {};
+        colorBlendAttachment.blendEnable = vk::True;
+        colorBlendAttachment.srcColorBlendFactor = vk::BlendFactor::eSrcAlpha;
+        colorBlendAttachment.dstColorBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha;
+        colorBlendAttachment.colorBlendOp = vk::BlendOp::eAdd;
+        colorBlendAttachment.srcAlphaBlendFactor = vk::BlendFactor::eOne;
+        colorBlendAttachment.dstAlphaBlendFactor = vk::BlendFactor::eZero;
+        colorBlendAttachment.alphaBlendOp = vk::BlendOp::eAdd;
+        colorBlendAttachment.colorWriteMask = vk::ColorComponentFlagBits::eR |
+            vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
+
+        vk::PipelineColorBlendStateCreateInfo colorBlending = {};
+        colorBlending.logicOpEnable = vk::False;
+        colorBlending.attachmentCount = 1;
+        colorBlending.pAttachments = &colorBlendAttachment;
+
+        vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
+        pipelineLayoutCreateInfo.setLayoutCount = 0;
+        pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
+
+        m_PipelineLayout =
+            vk::raii::PipelineLayout{VulkanContext::QueryLogicalDevice(), pipelineLayoutCreateInfo};
+
+        vk::PipelineRenderingCreateInfo renderingInfo = {};
+        renderingInfo.colorAttachmentCount = 1;
+        renderingInfo.pColorAttachmentFormats =
+            &VulkanContext::GetCurrentVulkanContext()->GetSwapChain()->GetFormat().format;
+        renderingInfo.colorAttachmentCount = 1;
+        renderingInfo.pColorAttachmentFormats =
+            &VulkanContext::GetCurrentVulkanContext()->GetSwapChain()->GetFormat().format;
+
+        vk::GraphicsPipelineCreateInfo pipelineInfo = {};
+        pipelineInfo.stageCount = shaderStages.size();
+        pipelineInfo.pStages = shaderStages.data();
+        pipelineInfo.pVertexInputState = &vertexInputInfo;
+        pipelineInfo.pInputAssemblyState = &inputAssembly;
+        pipelineInfo.pViewportState = &viewportState;
+        pipelineInfo.pRasterizationState = &rasterizer;
+        pipelineInfo.pMultisampleState = &multiSampling;
+        pipelineInfo.pColorBlendState = &colorBlending;
+        pipelineInfo.pDynamicState = &dynamicState;
+        pipelineInfo.layout = m_PipelineLayout;
+        pipelineInfo.renderPass = nullptr;
+        pipelineInfo.pNext = &renderingInfo;
+
+        m_Pipeline = vk::raii::Pipeline{VulkanContext::QueryLogicalDevice(), nullptr, pipelineInfo};
     }
 
     void VulkanShader::Bind() const
     {
-        VulkanContext::QueryGraphicsCommandBuffer().bindShadersEXT(
-            {vk::ShaderStageFlagBits::eVertex, vk::ShaderStageFlagBits::eFragment},
-            {m_VertexShader, m_FragmentShader});
+        VulkanContext::QueryGraphicsCommandBuffer().bindPipeline(
+            vk::PipelineBindPoint::eGraphics, m_Pipeline);
     }
 
-    void VulkanShader::Unbind() const
+    void VulkanShader::Unbind() const {}
+
+    vk::raii::ShaderModule VulkanShader::CreateShaderModule(const std::vector<char>& code) const
     {
-        VulkanContext::QueryGraphicsCommandBuffer().bindShadersEXT(
-            {vk::ShaderStageFlagBits::eVertex, vk::ShaderStageFlagBits::eFragment}, {nullptr, nullptr});
+        vk::ShaderModuleCreateInfo createInfo = {};
+        createInfo.codeSize = code.size();
+        createInfo.pCode = reinterpret_cast<const u32*>(code.data());
+
+        return vk::raii::ShaderModule{VulkanContext::QueryLogicalDevice(), createInfo};
     }
 } // namespace Vex

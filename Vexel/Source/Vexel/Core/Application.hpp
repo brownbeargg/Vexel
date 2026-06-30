@@ -41,7 +41,7 @@ namespace Vex
       protected:
         EventBus m_EventBus;
 
-        glm::vec3 m_ClearColor = glm::vec3(0.8f, 0.1f, 0.6f);
+        glm::vec3 m_ClearColor = glm::vec3(0.1f, 0.1f, 0.1f);
 
       private:
         /**

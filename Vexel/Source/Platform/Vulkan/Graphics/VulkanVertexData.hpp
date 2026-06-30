@@ -10,16 +10,8 @@ namespace Vex
 {
     class VulkanVertexData
     {
-        /* From Vulkan
-         *
-         *typedef struct VkVertexInputBindingDescription {
-         *    uint32_t             binding;
-         *    uint32_t             stride;
-         *    VkVertexInputRate    inputRate;
-         *} VkVertexInputBindingDescription;
-         */
-
-        vk::VertexInputBindingDescription GetVertexBindingDescription()
+      public:
+        static vk::VertexInputBindingDescription GetVertexBindingDescription()
         {
             vk::VertexInputBindingDescription bindingDescription;
 
@@ -33,18 +25,8 @@ namespace Vex
             return bindingDescription;
         }
 
-        std::array<vk::VertexInputAttributeDescription, 2> GetVertexAttributeDescriptions()
+        static std::array<vk::VertexInputAttributeDescription, 2> GetVertexAttributeDescriptions()
         {
-            /* From Vulkan
-             *
-             *typedef struct VkVertexInputAttributeDescription {
-             *      uint32_t    location;
-             *      uint32_t    binding;
-             *      VkFormat    format;
-             *      uint32_t    offset;
-             *  } VkVertexInputAttributeDescription;
-             */
-
             std::array<vk::VertexInputAttributeDescription, 2> attributeDescriptions;
 
             // Position
@@ -54,18 +36,18 @@ namespace Vex
             // TODO: make this a param
             attributeDescriptions[0].binding = 0;
 
-            attributeDescriptions[0].format = vk::Format::eR32G32B32A32Sfloat;
+            attributeDescriptions[0].format = vk::Format::eR32G32B32Sfloat;
             attributeDescriptions[0].offset = 0;
 
             // Color
 
-            attributeDescriptions[0].location = 1;
+            attributeDescriptions[1].location = 1;
 
             // TODO: make this a param
-            attributeDescriptions[0].binding = 0;
+            attributeDescriptions[1].binding = 0;
 
-            attributeDescriptions[0].format = vk::Format::eR32G32B32A32Sfloat;
-            attributeDescriptions[0].offset = 0;
+            attributeDescriptions[1].format = vk::Format::eR32G32B32Sfloat;
+            attributeDescriptions[1].offset = offsetof(VertexData, Color);
 
             return std::move(attributeDescriptions);
         }

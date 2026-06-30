@@ -4,6 +4,17 @@
 
 namespace Vex
 {
+    void RendererAPI::DrawIndexed(Ref<VertexBuffer> vertexBuffer, Ref<IndexBuffer> indexBuffer)
+    {
+        switch (s_GraphicsAPI)
+        {
+        case GraphicsAPIs::Vulkan:
+            return VulkanRendererAPI::DrawIndexed(vertexBuffer, indexBuffer);
+        }
+
+        VEX_RELEASE_ASSERT(false, "Invalid graphics API");
+    }
+
     void RendererAPI::Init()
     {
         switch (s_GraphicsAPI)
@@ -31,8 +42,10 @@ namespace Vex
         switch (s_GraphicsAPI)
         {
         case GraphicsAPIs::Vulkan:
-            VulkanRendererAPI::BeginFrame(clearColor);
+            return VulkanRendererAPI::BeginFrame(clearColor);
         }
+
+        VEX_RELEASE_ASSERT(false, "Invalid graphics API");
     }
 
     void RendererAPI::EndFrame()
@@ -40,7 +53,9 @@ namespace Vex
         switch (s_GraphicsAPI)
         {
         case GraphicsAPIs::Vulkan:
-            VulkanRendererAPI::EndFrame();
+            return VulkanRendererAPI::EndFrame();
         }
+
+        VEX_RELEASE_ASSERT(false, "Invalid graphics API");
     }
 } // namespace Vex

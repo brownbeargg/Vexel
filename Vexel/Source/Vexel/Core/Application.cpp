@@ -25,11 +25,11 @@ namespace Vex
             m_Time.Calculate(m_LastTime);
             m_TimeAccumulator += m_Time.Sec();
 
-            RendererAPI::BeginFrame(m_ClearColor);
-
             while (ShouldFixedUpdate())
                 for (Layer* layer : m_LayerStack)
                     layer->OnFixedUpdate(m_FixedTimeStep.Sec());
+
+            RendererAPI::BeginFrame(m_ClearColor);
 
             for (Layer* layer : m_LayerStack)
                 layer->OnUpdate(m_Time);

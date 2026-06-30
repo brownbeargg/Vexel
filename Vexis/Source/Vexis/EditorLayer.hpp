@@ -12,10 +12,18 @@ namespace Vex
             m_Shader =
                 Shader::Create(RootDirectory::Assets, "Shaders/Basic.vert.spv", "Shaders/Basic.frag.spv");
 
-            std::vector<VertexData> vertices;
-            vertices.emplace_back(glm::vec3(-0.5f, 0.5f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-            vertices.emplace_back(glm::vec3(0.5f, 0.5f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-            vertices.emplace_back(glm::vec3(0.0f, -0.5f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+            // vertices = {
+            //     {{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}}, // Bottom left
+            //     {{0.5f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},  // Bottom Right
+            //     {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}}, // Top right
+            //     {{-0.5f, -0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}} // Top left
+            // };
+
+            std::vector<VertexData> vertices = {
+                {glm::vec3{-0.5f, 0.5f, 0.0f}, glm::vec3{1.0f, 0.0f, 0.0f}}, // Bottom left
+                {glm::vec3{0.5f, 0.5f, 0.0f}, glm::vec3{0.0f, 1.0f, 0.0f}},  // Bottom right
+                {glm::vec3{0.0f, -0.5f, 0.0f}, glm::vec3{0.0f, 0.0f, 1.0f}}  // Top
+            };
 
             m_VertexBuffer = VertexBuffer::Create(vertices);
 
@@ -26,6 +34,7 @@ namespace Vex
         void OnUpdate(DeltaTime dt) override
         {
             m_Shader->Bind();
+            RendererAPI::DrawIndexed(m_VertexBuffer, m_IndexBuffer);
         }
 
       private:

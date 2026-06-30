@@ -7,9 +7,14 @@
 
 namespace Vex
 {
+    class VertexBuffer;
+    class IndexBuffer;
+
     class VulkanRendererAPI final
     {
       public:
+        static void DrawIndexed(Ref<VertexBuffer> vertexBuffer, Ref<IndexBuffer> indexBuffer);
+
         static void Init();
         static void Shutdown();
 

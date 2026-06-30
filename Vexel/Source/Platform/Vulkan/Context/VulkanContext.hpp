@@ -21,6 +21,7 @@ namespace Vex
     {
       public:
         VulkanContext(Observer<Window> pWindow) : m_pWindow(pWindow) {}
+        ~VulkanContext() { s_LogicalDevice.waitIdle(); }
 
         void Init() override;
 
@@ -72,6 +73,9 @@ namespace Vex
         static void CreateCommandBuffers();
 
         static void CreateSyncObjects();
+
+        static void CreateDescriptorPool();
+        static void CreateDescriptorSets();
 
       private:
         static inline VulkanContextTypes s_Context;

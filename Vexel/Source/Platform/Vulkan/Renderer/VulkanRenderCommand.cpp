@@ -2,6 +2,8 @@
 
 #include "Platform/Vulkan/Context/VulkanContext.hpp"
 
+#include "Vexel/Graphics/IndexBuffer.hpp"
+
 namespace Vex
 {
     namespace
@@ -9,6 +11,11 @@ namespace Vex
         void transImgLayout(uint32_t imageIndex, vk::ImageLayout oldLayout, vk::ImageLayout newLayout,
             vk::AccessFlags2 srcAccessMask, vk::AccessFlags2 dstAccessMask,
             vk::PipelineStageFlags2 srcStageMask, vk::PipelineStageFlags2 dstStageMask);
+    }
+
+    void VulkanRenderCommand::DrawIndexed(Ref<VertexBuffer> vertexBuffer, Ref<IndexBuffer> indexBuffer)
+    {
+        VulkanContext::QueryGraphicsCommandBuffer().drawIndexed(indexBuffer->GetIndexCount(), 1, 0, 0, 0);
     }
 
     void VulkanRenderCommand::Init()
@@ -43,19 +50,20 @@ namespace Vex
 
         VEX_RELEASE_ASSERT(fenceResult == vk::Result::eSuccess, "Failed to wait for vulkan fence");
 
-        logicalDevice.resetFences(*s_InFlightFences[frameIndex]);
-
         {
             // Get next image from swap chain
             auto [result, imageIndex] =
                 VulkanContext::GetCurrentVulkanContext()->GetSwapChain()->AcquireNextImage(
                     *s_PresentCompleteSemaphores[frameIndex]);
 
+            VEX_RELEASE_ASSERT(result == vk::Result::eSuccess, "Failed to acquire image from swap chain");
+
             s_ImageIndex = imageIndex;
         }
 
         vk::CommandBuffer cmdBuf = VulkanContext::QueryGraphicsCommandBuffer();
 
+        logicalDevice.resetFences(*s_InFlightFences[frameIndex]);
         cmdBuf.reset();
 
         vk::CommandBufferBeginInfo beginInfo = {};
