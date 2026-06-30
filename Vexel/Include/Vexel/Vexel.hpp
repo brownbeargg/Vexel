@@ -24,6 +24,7 @@
 
 /* Graphics */
 #include "Vexel/Graphics/VertexBuffer.hpp"
+#include "Vexel/Graphics/IndexBuffer.hpp"
 #include "Vexel/Graphics/VertexData.hpp"
 #include "Vexel/Graphics/Shader.hpp"
 

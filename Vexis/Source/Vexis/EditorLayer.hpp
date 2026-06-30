@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Vexel/Graphics/IndexBuffer.hpp"
 #include "Vexel/Vexel.hpp"
 
 namespace Vex
@@ -27,8 +26,6 @@ namespace Vex
         void OnUpdate(DeltaTime dt) override
         {
             m_Shader->Bind();
-            m_VertexBuffer->Bind();
-            m_IndexBuffer->Bind();
         }
 
       private:
