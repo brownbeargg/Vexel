@@ -1,6 +1,7 @@
 #include "VertexBuffer.hpp"
 
 #include "Platform/Vulkan/Graphics/VulkanVertexBuffer.hpp"
+#include "Vexel/Renderer/RendererAPI.hpp"
 
 namespace Vex
 {

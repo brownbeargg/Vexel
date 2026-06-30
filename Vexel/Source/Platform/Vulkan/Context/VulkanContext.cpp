@@ -294,7 +294,6 @@ namespace Vex
         vk::FenceCreateInfo fenceInfo = {};
         fenceInfo.flags = vk::FenceCreateFlagBits::eSignaled;
 
-        VEX_CORE_WARN("\t\t{}", VulkanSwapChain::GetImageCount());
         for (u32 i{}; i < VulkanSwapChain::GetImageCount(); ++i)
         {
             VulkanRenderCommand::s_RenderFinishedSemaphores.emplace_back(s_LogicalDevice, semaphoreInfo);

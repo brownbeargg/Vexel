@@ -8,6 +8,9 @@ namespace Vex
         : m_Buffer(VulkanBuffer(VulkanBufferInput{
               vertices.size() * sizeof(VertexData), vk::BufferUsageFlagBits::eVertexBuffer}))
     {
+        void* data = m_Buffer.Memory.mapMemory(0, vertices.size() * sizeof(VertexData));
+        memcpy(data, vertices.data(), vertices.size() * sizeof(VertexData));
+        m_Buffer.Memory.unmapMemory();
     }
 
     void VulkanVertexBuffer::Bind() const

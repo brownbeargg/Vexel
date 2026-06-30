@@ -1,9 +1,6 @@
 #pragma once
 
 #include "Vexel/Graphics/VertexData.hpp"
-#include "Vexel/Renderer/RendererTypes.hpp"
-
-#include "Vexel/Renderer/RendererAPI.hpp"
 
 namespace Vex
 {
@@ -19,8 +16,5 @@ namespace Vex
 
       protected:
         VertexBuffer() = default;
-
-      protected:
-        RendererID m_RendererID = u32_max;
     };
 } // namespace Vex

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Vexel/Graphics/IndexBuffer.hpp"
 #include "Vexel/Vexel.hpp"
 
 namespace Vex
@@ -18,19 +19,21 @@ namespace Vex
             vertices.emplace_back(glm::vec3(0.0f, -0.5f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
             m_VertexBuffer = VertexBuffer::Create(vertices);
+
+            std::vector<u32> indices = {0, 1, 2};
+            m_IndexBuffer = IndexBuffer::Create(indices);
         }
 
         void OnUpdate(DeltaTime dt) override
         {
             m_Shader->Bind();
             m_VertexBuffer->Bind();
-
-            m_Shader->Unbind();
-            m_VertexBuffer->Unbind();
+            m_IndexBuffer->Bind();
         }
 
       private:
-        Ref<VertexBuffer> m_VertexBuffer;
         Ref<Shader> m_Shader;
+        Ref<VertexBuffer> m_VertexBuffer;
+        Ref<IndexBuffer> m_IndexBuffer;
     };
 } // namespace Vex
