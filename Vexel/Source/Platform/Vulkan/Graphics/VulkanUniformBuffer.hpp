@@ -17,6 +17,11 @@ namespace Vex
         const vk::raii::DescriptorSetLayout& GetSetLayout() const { return m_DescriptorSetLayout; }
 
       private:
+        void CreatePool();
+        void CreateSetLayout();
+        void CreateDescriptorSets();
+
+      private:
         std::vector<VulkanBuffer> m_Buffers;
         std::vector<void*> m_BuffersMapped;
 

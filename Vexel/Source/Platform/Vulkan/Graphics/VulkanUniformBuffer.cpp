@@ -19,6 +19,27 @@ namespace Vex
             m_BuffersMapped.emplace_back(m_Buffers.back().Memory.mapMemory(0, bufferSize));
         }
 
+        CreatePool();
+        CreateSetLayout();
+        CreateDescriptorSets();
+    }
+
+    void VulkanUniformBuffer::Invalidate(const UniformBufferObject& ubo)
+    {
+        memcpy(m_BuffersMapped[VulkanContext::GetFrameIndex()], &ubo, sizeof(ubo));
+    }
+
+    void VulkanUniformBuffer::Bind(Ref<Shader> shader)
+    {
+        // TODO: Do not hardcode index
+
+        VulkanContext::QueryGraphicsCommandBuffer().bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
+            ((VulkanShader*)(shader.Get()))->GetPipelineLayout(), 0,
+            {*m_DescriptorSets[VulkanContext::GetFrameIndex()]}, {});
+    }
+
+    void VulkanUniformBuffer::CreatePool()
+    {
         vk::DescriptorPoolSize poolSize = {};
         poolSize.descriptorCount = VulkanSwapChain::MaxFramesInFlight();
         poolSize.type = vk::DescriptorType::eUniformBuffer;
@@ -31,7 +52,10 @@ namespace Vex
         poolInfo.flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet;
 
         m_DescriptorPool = vk::raii::DescriptorPool{VulkanContext::QueryLogicalDevice(), poolInfo};
+    }
 
+    void VulkanUniformBuffer::CreateSetLayout()
+    {
         vk::DescriptorSetLayoutBinding layoutBindings = {};
 
         // TODO: make different bindings for different UBO types
@@ -47,7 +71,10 @@ namespace Vex
         layoutInfo.pBindings = &layoutBindings;
 
         m_DescriptorSetLayout = {VulkanContext::QueryLogicalDevice(), layoutInfo};
+    }
 
+    void VulkanUniformBuffer::CreateDescriptorSets()
+    {
         std::vector<vk::DescriptorSetLayout> layouts(
             VulkanSwapChain::MaxFramesInFlight(), *m_DescriptorSetLayout);
 
@@ -76,19 +103,5 @@ namespace Vex
 
             VulkanContext::QueryLogicalDevice().updateDescriptorSets(descriptorWrite, nullptr);
         }
-    }
-
-    void VulkanUniformBuffer::Invalidate(const UniformBufferObject& ubo)
-    {
-        memcpy(m_BuffersMapped[VulkanContext::GetFrameIndex()], &ubo, sizeof(ubo));
-    }
-
-    void VulkanUniformBuffer::Bind(Ref<Shader> shader)
-    {
-        // TODO: Do not hardcode index
-
-        VulkanContext::QueryGraphicsCommandBuffer().bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
-            ((VulkanShader*)(shader.Get()))->GetPipelineLayout(), 0,
-            {*m_DescriptorSets[VulkanContext::GetFrameIndex()]}, {});
     }
 } // namespace Vex
