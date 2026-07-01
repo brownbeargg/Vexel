@@ -1,8 +1,10 @@
 #include "VulkanShader.hpp"
 
 #include "Platform/Vulkan/Context/VulkanContext.hpp"
-
+#include "Platform/Vulkan/Graphics/VulkanUniformBuffer.hpp"
 #include "Platform/Vulkan/Graphics/VulkanVertexData.hpp"
+
+#include "Vexel/Graphics/UniformBuffer.hpp"
 
 namespace Vex
 {
@@ -34,7 +36,7 @@ namespace Vex
     }
 
     VulkanShader::VulkanShader(RootDirectory root, const std::filesystem::path& vertexPath,
-        const std::filesystem::path& fragmentPath)
+        const std::filesystem::path& fragmentPath, Ref<UniformBuffer> uniformBuffer)
     {
         vk::raii::ShaderModule vertModule = CreateShaderModule(ReadSpirv(root, vertexPath));
         vk::raii::ShaderModule fragModule = CreateShaderModule(ReadSpirv(root, fragmentPath));
@@ -141,7 +143,9 @@ namespace Vex
         colorBlending.pAttachments = &colorBlendAttachment;
 
         vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
-        pipelineLayoutCreateInfo.setLayoutCount = 0;
+        pipelineLayoutCreateInfo.setLayoutCount = 1;
+        pipelineLayoutCreateInfo.pSetLayouts =
+            &*((VulkanUniformBuffer*)(uniformBuffer.Get()))->GetSetLayout();
         pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
 
         m_PipelineLayout =

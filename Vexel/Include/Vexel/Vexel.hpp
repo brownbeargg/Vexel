@@ -25,9 +25,13 @@
 /* Graphics */
 #include "Vexel/Graphics/VertexBuffer.hpp"
 #include "Vexel/Graphics/IndexBuffer.hpp"
+#include "Vexel/Graphics/UniformBuffer.hpp"
+#include "Vexel/Graphics/UniformBufferObject.hpp"
 #include "Vexel/Graphics/VertexData.hpp"
 #include "Vexel/Graphics/Shader.hpp"
 
 /* Renderer */
 #include "Vexel/Renderer/RendererAPI.hpp"
 #include "Vexel/Renderer/RendererTypes.hpp"
+
+#include <glm/gtc/matrix_transform.hpp>

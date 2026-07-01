@@ -5,12 +5,12 @@
 namespace Vex
 {
     Ref<Shader> Shader::Create(RootDirectory root, const std::filesystem::path& vertexPath,
-        const std::filesystem::path& fragmentPath)
+        const std::filesystem::path& fragmentPath, Ref<UniformBuffer> uniformBuffer)
     {
         switch (RendererAPI::API())
         {
         case GraphicsAPIs::Vulkan:
-            return new VulkanShader(root, vertexPath, fragmentPath);
+            return new VulkanShader(root, vertexPath, fragmentPath, uniformBuffer);
         }
 
         VEX_RELEASE_ASSERT(false, "Unknown renderer API");

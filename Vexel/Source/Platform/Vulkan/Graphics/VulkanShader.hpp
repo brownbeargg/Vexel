@@ -8,10 +8,12 @@ namespace Vex
     {
       public:
         VulkanShader(RootDirectory root, const std::filesystem::path& vertexPath,
-            const std::filesystem::path& fragmentPath);
+            const std::filesystem::path& fragmentPath, Ref<UniformBuffer> uniformBuffer);
 
         void Bind() const override;
         void Unbind() const override;
+
+        vk::raii::PipelineLayout& GetPipelineLayout() { return m_PipelineLayout; }
 
       private:
         vk::raii::ShaderModule CreateShaderModule(const std::vector<char>& code) const;

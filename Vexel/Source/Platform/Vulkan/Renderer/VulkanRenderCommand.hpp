@@ -20,6 +20,8 @@ namespace Vex
         static void BeginFrame(const glm::vec3& clearColor);
         static void EndFrame();
 
+        static u32 GetImageIndex() { return s_ImageIndex; }
+
       private:
         static inline std::vector<vk::raii::Semaphore> s_PresentCompleteSemaphores;
         static inline std::vector<vk::raii::Semaphore> s_RenderFinishedSemaphores;
