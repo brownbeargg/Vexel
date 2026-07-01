@@ -12,7 +12,6 @@ namespace Vex
         ~VulkanIndexBuffer() = default;
 
         void Bind() const override;
-        void Unbind() const override;
 
       private:
         VulkanBuffer m_Buffer;

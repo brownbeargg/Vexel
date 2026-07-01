@@ -11,7 +11,6 @@ namespace Vex
             const std::filesystem::path& fragmentPath, Ref<UniformBuffer> uniformBuffer);
 
         void Bind() const override;
-        void Unbind() const override;
 
         vk::raii::PipelineLayout& GetPipelineLayout() { return m_PipelineLayout; }
 

@@ -10,7 +10,6 @@ namespace Vex
         virtual ~VertexBuffer() = default;
 
         virtual void Bind() const = 0;
-        virtual void Unbind() const = 0;
 
         static Ref<VertexBuffer> Create(const std::vector<VertexData>& vertices);
 

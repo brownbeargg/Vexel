@@ -16,6 +16,4 @@ namespace Vex
         VulkanContext::QueryGraphicsCommandBuffer().bindIndexBuffer(
             m_Buffer.Buffer, 0, vk::IndexType::eUint32);
     }
-
-    void VulkanIndexBuffer::Unbind() const {}
 } // namespace Vex

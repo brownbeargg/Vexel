@@ -91,6 +91,4 @@ namespace Vex
             ((VulkanShader*)(shader.Get()))->GetPipelineLayout(), 0,
             {*m_DescriptorSets[VulkanContext::GetFrameIndex()]}, {});
     }
-
-    void VulkanUniformBuffer::Unbind() {}
 } // namespace Vex

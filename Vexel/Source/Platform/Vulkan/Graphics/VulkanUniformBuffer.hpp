@@ -14,8 +14,6 @@ namespace Vex
 
         void Bind(Ref<Shader> shader) override;
 
-        void Unbind() override;
-
         const vk::raii::DescriptorSetLayout& GetSetLayout() const { return m_DescriptorSetLayout; }
 
       private:

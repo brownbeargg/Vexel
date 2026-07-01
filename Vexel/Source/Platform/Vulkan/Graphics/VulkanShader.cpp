@@ -182,8 +182,6 @@ namespace Vex
             vk::PipelineBindPoint::eGraphics, m_Pipeline);
     }
 
-    void VulkanShader::Unbind() const {}
-
     vk::raii::ShaderModule VulkanShader::CreateShaderModule(const std::vector<char>& code) const
     {
         vk::ShaderModuleCreateInfo createInfo = {};

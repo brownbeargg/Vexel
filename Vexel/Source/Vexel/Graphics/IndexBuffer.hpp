@@ -8,7 +8,6 @@ namespace Vex
         virtual ~IndexBuffer() = default;
 
         virtual void Bind() const = 0;
-        virtual void Unbind() const = 0;
 
         u32 GetIndexCount() { return m_IndexCount; }
 
