@@ -4,3 +4,6 @@
 [submodule "Vexel/Vendor/GLFW"]
 	path = Vexel/Vendor/GLFW
 	url = https://github.com/glfw/glfw.git
+[submodule "Vexel/Vendor/imgui"]
+	path = Vexel/Vendor/imgui
+	url = https://github.com/ocornut/imgui.git
