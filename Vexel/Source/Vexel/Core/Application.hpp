@@ -15,19 +15,17 @@ namespace Vex
         virtual ~Application();
 
         void Run();
-
-        virtual void PollEvents() = 0;
-        void ForwardEvent(Scope<Event>&& e) { m_EventBus.Queue(std::move(e)); }
-
-        virtual void OnUpdate() = 0;
-
         void Close() { m_Running = false; }
+
+        void ForwardEvent(Scope<Event>&& e) { m_EventBus.Queue(std::move(e)); }
 
         void PushLayer(Layer* layer);
         void PushOverlay(Layer* overlay);
 
         void PopLayer(Layer* layer);
         void PopOverlay(Layer* overlay);
+
+        EventBus& GetEventBus() { return m_EventBus; }
 
         static Application* Instance() { return s_Instance; }
 
@@ -39,9 +37,12 @@ namespace Vex
         virtual void OnWindowClose(WindowClosedEvent& e) = 0;
 
       protected:
+        Ref<Window> m_Window;
         EventBus m_EventBus;
 
         glm::vec3 m_ClearColor = glm::vec3(0.1f, 0.1f, 0.1f);
+
+        bool m_ContinueUnfocused = true;
 
       private:
         /**

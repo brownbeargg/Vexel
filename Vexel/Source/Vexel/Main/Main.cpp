@@ -9,7 +9,7 @@ namespace Vex
 {
     void Main::Run(int argc, char* argv[])
     {
-        InitMainContext();
+        CreateMainContext();
 
         Application::s_Instance = Application::Create();
         Application::s_Instance->Run();
@@ -18,11 +18,11 @@ namespace Vex
         DestroyMainContext();
     }
 
-    void Main::InitMainContext()
+    void Main::CreateMainContext()
     {
         Log::Init();
 
-        VEX_CORE_TRACE("Application initialization");
+        VEX_CORE_TRACE("Context creation");
 
         FileSystem::Mount(RootDirectory::Binary, FileSystem::GetExecutableDir());
 
@@ -40,7 +40,7 @@ namespace Vex
 
     void Main::DestroyMainContext()
     {
-        VEX_CORE_TRACE("Application shutdown");
+        VEX_CORE_TRACE("Context destruction");
 
         Window::DestroyContext();
         RendererAPI::Shutdown();

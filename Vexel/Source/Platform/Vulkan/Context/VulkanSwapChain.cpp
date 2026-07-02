@@ -3,6 +3,8 @@
 #define GLFW_INCLUDE_VULKAN
 #include "GLFW/glfw3.h"
 
+#include "Platform/Vulkan/Context/VulkanContext.hpp"
+
 namespace Vex
 {
     VulkanSwapChain::VulkanSwapChain(vk::raii::Instance& instance, vk::raii::PhysicalDevice& physicalDevice,
@@ -10,6 +12,7 @@ namespace Vex
         : m_Instance(instance), m_PhysicalDevice(physicalDevice), m_LogicalDevice(logicalDevice),
           m_pWindow(pWindow)
     {
+        VEX_RELEASE_ASSERT(glfwVulkanSupported(), "GLFW error: Vulkan is not supported");
         CreateSurface();
     }
 
@@ -114,7 +117,7 @@ namespace Vex
 
         auto formatIt = std::ranges::find_if(availableFormats, [](const auto& format)
         {
-            return format.format == vk::Format::eB8G8R8A8Srgb &&
+            return format.format == vk::Format::eB8G8R8A8Unorm &&
                 format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear;
         });
 

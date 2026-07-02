@@ -15,12 +15,12 @@ namespace Vex
         virtual void OnAttach() {}
         virtual void OnDetach() {}
 
-        /// @todo add a DeltaTime class and a TimeStep alias
-
         virtual void OnUpdate(DeltaTime dt) {}
         virtual void OnFixedUpdate(TimeStep ts) {}
 
         virtual void OnEvent(Event& e) {}
+
+        virtual void OnImGuiRender() {}
 
         Weak<Application> App();
         const std::string& Name() { return m_Name; }

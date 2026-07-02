@@ -6,8 +6,8 @@
 
 namespace Vex
 {
-class VertexBuffer;
-class IndexBuffer;
+    class VertexBuffer;
+    class IndexBuffer;
 
     enum class GraphicsAPIs
     {
@@ -23,8 +23,6 @@ class IndexBuffer;
         static void Shutdown();
 
         static GraphicsAPIs API() { return s_GraphicsAPI; }
-
-        static void SwapBuffers(Observer<Window> pWindow) {}
 
         static void BeginFrame(const glm::vec3& clearColor);
         static void EndFrame();

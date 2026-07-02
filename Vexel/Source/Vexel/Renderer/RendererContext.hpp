@@ -15,6 +15,7 @@ namespace Vex
         virtual void Init() = 0;
 
         virtual void MakeContextCurrent() = 0;
+        virtual void WaitForGPUIdle() = 0;
 
         VulkanContext* ToVulkanContext();
     };

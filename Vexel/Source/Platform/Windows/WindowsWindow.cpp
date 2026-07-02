@@ -34,7 +34,7 @@ namespace Vex
 
     WindowsWindow::~WindowsWindow()
     {
-        if (m_Data.IsOpen)
+        if (m_Data.Open)
             Close();
     }
 
@@ -45,7 +45,7 @@ namespace Vex
 
     bool WindowsWindow::ShouldClose() const
     {
-        if (m_Data.IsOpen)
+        if (m_Data.Open)
             return glfwWindowShouldClose(m_Window);
 
         return false;
@@ -55,7 +55,7 @@ namespace Vex
     {
         glfwDestroyWindow(m_Window);
         m_Window = nullptr;
-        m_Data.IsOpen = false;
+        m_Data.Open = false;
 
         --s_NumberOfWindows;
         s_WindowInstances.erase(
@@ -152,6 +152,13 @@ namespace Vex
             WindowData* data = static_cast<WindowData*>(glfwGetWindowUserPointer(window));
 
             data->EventCallback(Scope<WindowMovedEvent>::Create(data->Self, xPos, yPos));
+        });
+
+        glfwSetWindowIconifyCallback(m_Window, [](GLFWwindow* window, int iconified)
+        {
+            WindowData* data = static_cast<WindowData*>(glfwGetWindowUserPointer(window));
+
+            data->EventCallback(Scope<WindowMinimizedEvent>::Create(data->Self, iconified));
         });
     }
 

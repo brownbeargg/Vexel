@@ -1,6 +1,9 @@
 #include "RendererAPI.hpp"
 
 #include "Platform/Vulkan/Renderer/VulkanRendererAPI.hpp"
+#include "Vexel/ImGui/ImGuiContext.hpp"
+
+#include <imgui.h>
 
 namespace Vex
 {

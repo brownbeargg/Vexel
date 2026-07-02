@@ -2,6 +2,8 @@
 
 #include "Vexel/Vexel.hpp"
 
+#include <imgui.h>
+
 namespace Vex
 {
     class EditorLayer final : public Layer
@@ -43,6 +45,8 @@ namespace Vex
 
         void OnUpdate(DeltaTime dt) override
         {
+            m_FPS = 1 / dt;
+
             m_QuadMVP.Model =
                 glm::rotate(m_QuadMVP.Model, glm::radians(10 * dt.Sec()), glm::vec3{0.0f, 0.0f, 1.0f});
             m_QuadUniformBuffer->Invalidate(m_QuadMVP);
@@ -76,7 +80,16 @@ namespace Vex
             RendererAPI::DrawIndexed(m_TriangleVertexBuffer, m_TriangleIndexBuffer);
         }
 
+        void OnImGuiRender() override
+        {
+            ImGui::Begin("Engine data");
+            ImGui::Value("FPS:", m_FPS);
+            ImGui::End();
+        }
+
       private:
+        float m_FPS = 0;
+
         Ref<Shader> m_Shader;
 
         Ref<UniformBuffer> m_QuadUniformBuffer;

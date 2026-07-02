@@ -50,16 +50,14 @@ namespace Vex
 
         VEX_RELEASE_ASSERT(fenceResult == vk::Result::eSuccess, "Failed to wait for vulkan fence");
 
-        {
-            // Get next image from swap chain
-            auto [result, imageIndex] =
-                VulkanContext::GetCurrentVulkanContext()->GetSwapChain()->AcquireNextImage(
-                    *s_PresentCompleteSemaphores[frameIndex]);
+        // Get next image from swap chain
+        auto [result, imageIndex] =
+            VulkanContext::GetCurrentVulkanContext()->GetSwapChain()->AcquireNextImage(
+                *s_PresentCompleteSemaphores[frameIndex]);
 
-            VEX_RELEASE_ASSERT(result == vk::Result::eSuccess, "Failed to acquire image from swap chain");
+        VEX_RELEASE_ASSERT(result == vk::Result::eSuccess, "Failed to acquire image from swap chain");
 
-            s_ImageIndex = imageIndex;
-        }
+        s_ImageIndex = imageIndex;
 
         vk::CommandBuffer cmdBuf = VulkanContext::QueryGraphicsCommandBuffer();
 
@@ -97,10 +95,7 @@ namespace Vex
 
     void VulkanRenderCommand::EndFrame()
     {
-        const u32 frameIndex = VulkanContext::GetFrameIndex();
-
         vk::CommandBuffer cmdBuf = VulkanContext::QueryGraphicsCommandBuffer();
-        vk::raii::Queue& graphicsQueue = VulkanContext::QueryGraphicsQueue();
 
         cmdBuf.endRendering();
 
@@ -109,22 +104,10 @@ namespace Vex
             vk::AccessFlagBits2::eNone, vk::PipelineStageFlagBits2::eColorAttachmentOutput,
             vk::PipelineStageFlagBits2::eBottomOfPipe);
 
-        cmdBuf.end();
+        const u32 frameIndex = VulkanContext::GetFrameIndex();
+        vk::raii::Queue& graphicsQueue = VulkanContext::QueryGraphicsQueue();
 
-        /* From Vulkan
-         *
-         *typedef struct VkSubmitInfo {
-         *    VkStructureType                sType;
-         *    const void*                    pNext;
-         *    uint32_t                       waitSemaphoreCount;
-         *    const VkSemaphore*             pWaitSemaphores;
-         *    const VkPipelineStageFlags*    pWaitDstStageMask;
-         *    uint32_t                       commandBufferCount;
-         *    const VkCommandBuffer*         pCommandBuffers;
-         *    uint32_t                       signalSemaphoreCount;
-         *    const VkSemaphore*             pSignalSemaphores;
-         *} VkSubmitInfo;
-         */
+        cmdBuf.end();
 
         vk::PipelineStageFlags waitDstStageFlags = vk::PipelineStageFlagBits::eColorAttachmentOutput;
 
@@ -138,20 +121,6 @@ namespace Vex
         submitInfo.pSignalSemaphores = &*s_RenderFinishedSemaphores[s_ImageIndex];
 
         graphicsQueue.submit(submitInfo, *s_InFlightFences[frameIndex]);
-
-        /* From Vulkan
-         *
-         *typedef struct VkPresentInfoKHR {
-         *    VkStructureType          sType;
-         *    const void*              pNext;
-         *    uint32_t                 waitSemaphoreCount;
-         *    const VkSemaphore*       pWaitSemaphores;
-         *    uint32_t                 swapchainCount;
-         *    const VkSwapchainKHR*    pSwapchains;
-         *    const uint32_t*          pImageIndices;
-         *    VkResult*                pResults;
-         *} VkPresentInfoKHR;
-         */
 
         vk::PresentInfoKHR presentInfo = {};
         presentInfo.waitSemaphoreCount = 1;

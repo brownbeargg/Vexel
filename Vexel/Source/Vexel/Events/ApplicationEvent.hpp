@@ -96,4 +96,20 @@ namespace Vex
       private:
         int m_XPos, m_YPos;
     };
+
+    class WindowMinimizedEvent final : public WindowEvent
+    {
+      public:
+        WindowMinimizedEvent(Observer<Window> window, bool minimized)
+            : WindowEvent(window), m_Minimized(minimized)
+        {
+        }
+
+        VEX_EVENT_CLASS_TYPE(EventType::WindowMinimized);
+
+        bool IsMinimized() { return m_Minimized; }
+
+      private:
+        bool m_Minimized;
+    };
 } // namespace Vex

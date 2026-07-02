@@ -8,7 +8,7 @@ namespace Vex
         static void Run(int argc, char* argv[]);
 
       private:
-        static void InitMainContext();
+        static void CreateMainContext();
         static void DestroyMainContext();
     };
 } // namespace Vex

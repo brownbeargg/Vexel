@@ -29,7 +29,9 @@ namespace Vex
         void SetVSync(bool enabled) override;
         bool IsVSync() const override { return m_Data.VSync; }
 
-        bool IsOpen() const override { return m_Data.IsOpen; }
+        bool IsOpen() const override { return m_Data.Open; }
+        bool IsFocused() const override { return m_Data.Focus; }
+        bool IsMinimized() const override { return m_Data.Minimized; }
 
         void* GetNativeWindow() const override { return m_Window; }
 
@@ -55,7 +57,8 @@ namespace Vex
             bool HasTitleBar;
             bool Resizable;
 
-            bool IsOpen = true;
+            bool Open = true;
+            bool Minimized = false;
 
             EventCallbackFn EventCallback = nullptr;
 

@@ -24,6 +24,8 @@ namespace Vex
         ~VulkanContext() { s_LogicalDevice.waitIdle(); }
 
         void Init() override;
+        void MakeContextCurrent() override { s_CurrentContext = m_pWindow; }
+        void WaitForGPUIdle() override { s_LogicalDevice.waitIdle(); }
 
         static void CreateContext();
         static void DestroyContext();
@@ -32,6 +34,7 @@ namespace Vex
         static vk::raii::Instance& QueryInstance() { return s_Context.Instance; }
         static vk::raii::Device& QueryLogicalDevice() { return s_LogicalDevice; }
 
+        static u32 GetGraphicsQueueIndex() { return s_GraphicsQueueIndex; }
         static vk::raii::Queue& QueryGraphicsQueue() { return s_GraphicsQueue; }
         static vk::raii::CommandPool& QueryGraphicsCommandPool() { return s_GraphicsCommandPool; }
         static vk::raii::CommandBuffer& QueryGraphicsCommandBuffer()
@@ -39,13 +42,13 @@ namespace Vex
             return s_GraphicsCommandBuffers[s_CurrentFrameIndex];
         }
 
+        static u32 GetTransferQueueIndex() { return s_TransferQueueIndex; }
         static vk::raii::Queue& QueryTransferQueue() { return s_TransferQueue; }
         static vk::raii::CommandPool& QueryTransferCommandPool() { return s_TransferCommandPool; }
         static vk::raii::CommandBuffer& QueryTransferCommandBuffer() { return s_TransferCommandBuffer; }
 
         static VulkanContextTypes& QueryContextTypes() { return s_Context; }
 
-        void MakeContextCurrent() override { s_CurrentContext = m_pWindow; }
         static Observer<Window> GetCurrentContext() { return s_CurrentContext; }
 
         static Observer<VulkanContext> GetCurrentVulkanContext()
@@ -60,6 +63,8 @@ namespace Vex
         {
             s_CurrentFrameIndex = (s_CurrentFrameIndex + 1) % VulkanSwapChain::MaxFramesInFlight();
         };
+
+        Window* GetWindow() { return m_pWindow.Get(); }
 
       private:
         static void CreateInstance();

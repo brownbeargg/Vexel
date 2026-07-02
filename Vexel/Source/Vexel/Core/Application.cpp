@@ -4,15 +4,30 @@
 #include "Vexel/Core/Window.hpp"
 #include "Vexel/Events/ApplicationEvent.hpp"
 
+#include "Vexel/ImGui/ImGuiContext.hpp"
 #include "Vexel/Renderer/RendererAPI.hpp"
 
 #include "Vexel/Utils.hpp"
 
 namespace Vex
 {
-    Application::Application() {}
+    Application::Application()
+    {
+        VEX_CORE_TRACE("Application initialization");
 
-    Application::~Application() {}
+        m_Window = Window::Create();
+        m_Window->SetEventCallbackFn(VEX_BIND_METHOD(ForwardEvent));
+        m_EventBus.Observe<WindowClosedEvent>(VEX_BIND_METHOD(OnWindowClose));
+
+        ImGuiContext::CreateContext();
+    }
+
+    Application::~Application()
+    {
+        VEX_CORE_TRACE("Application shutdown");
+
+        ImGuiContext::DestroyContext();
+    }
 
     void Application::Run()
     {
@@ -25,24 +40,27 @@ namespace Vex
             m_Time.Calculate(m_LastTime);
             m_TimeAccumulator += m_Time.Sec();
 
-            while (ShouldFixedUpdate())
+            if ((m_ContinueUnfocused || m_Window->IsFocused()) && !m_Window->IsMinimized())
+            {
+                while (ShouldFixedUpdate())
+                    for (Layer* layer : m_LayerStack)
+                        layer->OnFixedUpdate(m_FixedTimeStep.Sec());
+
+                RendererAPI::BeginFrame(m_ClearColor);
+
                 for (Layer* layer : m_LayerStack)
-                    layer->OnFixedUpdate(m_FixedTimeStep.Sec());
+                    layer->OnUpdate(m_Time);
 
-            RendererAPI::BeginFrame(m_ClearColor);
+                ImGuiContext::BeginFrame();
+                for (Layer* layer : m_LayerStack)
+                    layer->OnImGuiRender();
+                ImGuiContext::EndFrame();
 
-            for (Layer* layer : m_LayerStack)
-                layer->OnUpdate(m_Time);
+                RendererAPI::EndFrame();
+            }
 
-            OnUpdate();
-
-            RendererAPI::EndFrame();
-
-            PollEvents();
+            m_Window->PollEvents();
             m_EventBus.Dispatch();
-
-            for (Ref<Window> window : GetActiveWindows())
-                RendererAPI::SwapBuffers(window.Get());
         }
     }
 

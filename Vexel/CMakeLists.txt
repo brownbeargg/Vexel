@@ -23,6 +23,22 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/Vendor/VexelUtils)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/Vendor/GLFW)
 
+file(GLOB IMGUI_SRC
+    ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/imgui/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/imgui/backends/imgui_impl_glfw.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/imgui/backends/imgui_impl_vulkan.cpp
+)
+add_library(imgui STATIC ${IMGUI_SRC})
+target_link_libraries(imgui
+    PUBLIC
+    Vulkan::Vulkan
+)
+target_include_directories(imgui PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/imgui
+    ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/imgui/backends
+    ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/GLFW/include
+)
+
 find_package(Vulkan REQUIRED)
 
 target_link_libraries(Vexel
@@ -31,6 +47,8 @@ target_link_libraries(Vexel
 
     glfw
     Vulkan::Vulkan
+
+    imgui
 )
 
 target_include_directories(Vexel
@@ -43,6 +61,7 @@ target_include_directories(Vexel
     ${CMAKE_CURRENT_SOURCE_DIR}/Source
 
     ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/GLFW/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/imgui
 )
 
 find_program(GLSLANG_VALIDATOR glslangValidator REQUIRED)
