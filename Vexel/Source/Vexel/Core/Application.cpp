@@ -40,9 +40,6 @@ namespace Vex
             m_Time.Calculate(m_LastTime);
             m_TimeAccumulator += m_Time.Sec();
 
-            m_Window->PollEvents();
-            m_EventBus.Dispatch();
-
             while (ShouldFixedUpdate())
                 for (Layer* layer : m_LayerStack)
                     layer->OnFixedUpdate(m_FixedTimeStep.Sec());
@@ -61,6 +58,9 @@ namespace Vex
 
                 RendererAPI::EndFrame();
             }
+
+            m_Window->PollEvents();
+            m_EventBus.Dispatch();
         }
     }
 
