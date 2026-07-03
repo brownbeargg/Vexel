@@ -9,6 +9,9 @@
 
 /* Core */
 #include "Vexel/Core/DeltaTime.hpp"
+#include "Vexel/Core/Input.hpp"
+#include "Vexel/Core/Codes.hpp"
+#include "Vexel/Core/Layer.hpp"
 
 /* Layers */
 #include "Vexel/Core/Layer.hpp"
@@ -29,6 +32,7 @@
 #include "Vexel/Graphics/UniformBufferObject.hpp"
 #include "Vexel/Graphics/VertexData.hpp"
 #include "Vexel/Graphics/Shader.hpp"
+#include "Vexel/Graphics/PerspectiveCamera.hpp"
 
 /* Renderer */
 #include "Vexel/Renderer/RendererAPI.hpp"

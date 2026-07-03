@@ -45,6 +45,8 @@ namespace Vex
         virtual bool IsFocused() const = 0;
         virtual bool IsMinimized() const = 0;
 
+        virtual void ListenToMouse(bool listen) = 0;
+
         virtual void SetEventCallbackFn(const EventCallbackFn& fn) = 0;
 
         virtual void* GetNativeWindow() const = 0;

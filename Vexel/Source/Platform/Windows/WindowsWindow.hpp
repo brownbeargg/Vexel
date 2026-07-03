@@ -33,6 +33,11 @@ namespace Vex
         bool IsFocused() const override { return m_Data.Focus; }
         bool IsMinimized() const override { return m_Data.Minimized; }
 
+        void ListenToMouse(bool listen) override
+        {
+            glfwSetInputMode(m_Window, GLFW_CURSOR, listen ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+        }
+
         void* GetNativeWindow() const override { return m_Window; }
 
         void SetEventCallbackFn(const EventCallbackFn& fn) override { m_Data.EventCallback = fn; }
