@@ -123,14 +123,17 @@ namespace Vex
         glfwSetWindowCloseCallback(m_Window, [](GLFWwindow* window)
         {
             WindowData* data = static_cast<WindowData*>(glfwGetWindowUserPointer(window));
+            data->Open = false;
 
-            /// @todo add multiple options so multiple windows are possible
+            data->Self->GetRendererContext()->WaitForGPUIdle();
             data->EventCallback(Scope<WindowClosedEvent>::Create(data->Self));
         });
 
         glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* window, int width, int height)
         {
             WindowData* data = static_cast<WindowData*>(glfwGetWindowUserPointer(window));
+            data->Width = width;
+            data->Height = height;
 
             /// @todo set swapchain extent width and height when resized
             data->EventCallback(Scope<WindowResizedEvent>::Create(data->Self, width, height));
@@ -150,6 +153,8 @@ namespace Vex
         glfwSetWindowPosCallback(m_Window, [](GLFWwindow* window, int xPos, int yPos)
         {
             WindowData* data = static_cast<WindowData*>(glfwGetWindowUserPointer(window));
+            data->XPos = xPos;
+            data->YPos = yPos;
 
             data->EventCallback(Scope<WindowMovedEvent>::Create(data->Self, xPos, yPos));
         });
@@ -157,7 +162,9 @@ namespace Vex
         glfwSetWindowIconifyCallback(m_Window, [](GLFWwindow* window, int iconified)
         {
             WindowData* data = static_cast<WindowData*>(glfwGetWindowUserPointer(window));
+            data->Minimized = iconified;
 
+            data->Self->GetRendererContext()->WaitForGPUIdle();
             data->EventCallback(Scope<WindowMinimizedEvent>::Create(data->Self, iconified));
         });
     }

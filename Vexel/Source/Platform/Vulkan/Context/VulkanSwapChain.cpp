@@ -21,8 +21,14 @@ namespace Vex
         m_ImageViews.clear();
         m_SwapChain = nullptr;
 
-        CreateSwapChain();
-        CreateImageViews();
+        try
+        {
+            CreateSwapChain();
+            CreateImageViews();
+        }
+        catch (const vk::SurfaceLostKHRError& e)
+        {
+        }
     }
 
     void VulkanSwapChain::CreateSurface()

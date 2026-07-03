@@ -130,15 +130,13 @@ namespace Vex
             &*VulkanContext::GetCurrentVulkanContext()->GetSwapChain()->GetVulkanObject();
         presentInfo.pImageIndices = &s_ImageIndex;
 
-        vk::Result result = graphicsQueue.presentKHR(presentInfo);
-        switch (result)
+        try
         {
-        case vk::Result::eSuccess:
-            break;
-        case vk::Result::eSuboptimalKHR:
-            VEX_CORE_WARN("Got suboptimal present result");
-        default:
-            break;
+            vk::Result result = graphicsQueue.presentKHR(presentInfo);
+        }
+        catch (const vk::OutOfDateKHRError& e)
+        {
+            VulkanContext::GetCurrentVulkanContext()->GetSwapChain()->Invalidate();
         }
     }
 

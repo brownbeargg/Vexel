@@ -3,8 +3,6 @@
 #include "Vexel/Core/Application.hpp"
 #include "Vexel/Renderer/RendererAPI.hpp"
 
-#include <vulkan/vulkan_raii.hpp>
-
 namespace Vex
 {
     void Main::Run(int argc, char* argv[])
@@ -55,7 +53,7 @@ int main(int argc, char* argv[])
     }
     catch (const std::exception& e)
     {
-        std::cout << e.what();
+        std::cout << e.what() << std::endl;
         return EXIT_FAILURE;
     }
 
