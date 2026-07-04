@@ -62,21 +62,21 @@ namespace Vex
         {
             m_TriangleDistance += m_TriangleSpeed * dt;
 
-            if (m_TriangleDistance >= 25.0f)
+            if (m_TriangleDistance >= m_MaxTriangleDistance)
                 m_TriangleBacking = false;
 
-            if (m_TriangleDistance > 25.0f)
-                m_TriangleDistance = 25.0f;
+            if (m_TriangleDistance > m_MaxTriangleDistance)
+                m_TriangleDistance = m_MaxTriangleDistance;
         }
         else
         {
             m_TriangleDistance -= m_TriangleSpeed * dt;
 
-            if (m_TriangleDistance <= 0.3f)
+            if (m_TriangleDistance <= m_MinTriangleDistance)
                 m_TriangleBacking = true;
 
-            if (m_TriangleDistance < 0.3f)
-                m_TriangleDistance = 0.3f;
+            if (m_TriangleDistance < m_MinTriangleDistance)
+                m_TriangleDistance = m_MinTriangleDistance;
         }
 
         m_TriangleMVP.Model = glm::translate(m_TriangleMVP.Model, glm::vec3(0.0f, 0.0f, m_TriangleDistance));
@@ -94,8 +94,14 @@ namespace Vex
 
     void EditorLayer::OnImGuiRender()
     {
-        ImGui::Begin("Engine data");
+        ImGui::Begin("Engine statistics");
         ImGui::Value("FPS:", m_FPS);
+        ImGui::End();
+
+        ImGui::Begin("Settings");
+        ImGui::SliderFloat("Max Triangle Distance", &m_MaxTriangleDistance, 0.0f, 40.0f);
+        ImGui::SliderFloat("Min Triangle Distance", &m_MinTriangleDistance, 0.0f, 40.0f);
+        ImGui::Value("Current triangle distance", m_TriangleDistance);
         ImGui::End();
     }
 

@@ -39,6 +39,10 @@ namespace Vex
 
         float m_TriangleDistance = 1;
         float m_TriangleSpeed = 0.8f;
+
+        float m_MaxTriangleDistance = 20.0f;
+        float m_MinTriangleDistance = 0.3f;
+
         bool m_TriangleBacking = true;
     };
 } // namespace Vex
