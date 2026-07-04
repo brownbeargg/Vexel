@@ -1,15 +1,12 @@
 #include "VulkanShader.hpp"
 
 #include "Platform/Vulkan/Context/VulkanContext.hpp"
-#include "Platform/Vulkan/Graphics/VulkanUniformBuffer.hpp"
 #include "Platform/Vulkan/Graphics/VulkanVertexData.hpp"
-
-#include "Vexel/Graphics/UniformBuffer.hpp"
 
 namespace Vex
 {
     // TODO: Move to VexelUtils
-    static std::vector<char> ReadFile(RootDirectory root, const std::filesystem::path& path)
+    static std::vector<char> ReadBinaryFile(RootDirectory root, const std::filesystem::path& path)
     {
         std::ifstream file(FileSystem::Resolve(root, path), std::ios::ate | std::ios::binary);
         VEX_RELEASE_ASSERT(
@@ -28,7 +25,7 @@ namespace Vex
 
     static std::vector<char> ReadSpirv(RootDirectory root, const std::filesystem::path& path)
     {
-        std::vector<char> bytes = ReadFile(root, path);
+        std::vector<char> bytes = ReadBinaryFile(root, path);
 
         VEX_RELEASE_ASSERT(bytes.size() % 4 == 0, "SPIR-V size is not multiple of 4");
 
@@ -36,7 +33,7 @@ namespace Vex
     }
 
     VulkanShader::VulkanShader(RootDirectory root, const std::filesystem::path& vertexPath,
-        const std::filesystem::path& fragmentPath, Ref<UniformBuffer> uniformBuffer)
+        const std::filesystem::path& fragmentPath)
     {
         vk::raii::ShaderModule vertModule = CreateShaderModule(ReadSpirv(root, vertexPath));
         vk::raii::ShaderModule fragModule = CreateShaderModule(ReadSpirv(root, fragmentPath));
@@ -53,6 +50,27 @@ namespace Vex
 
         std::array<vk::PipelineShaderStageCreateInfo, 2> shaderStages = {vertStage, fragStage};
 
+        CreateDescriptorPools();
+        CreateDescriptorSetLayouts();
+        CreatePipeline(std::move(shaderStages));
+    }
+
+    void VulkanShader::Bind() const
+    {
+        VulkanContext::GraphicsCommandBuffer().bindPipeline(vk::PipelineBindPoint::eGraphics, m_Pipeline);
+    }
+
+    vk::raii::ShaderModule VulkanShader::CreateShaderModule(const std::vector<char>& code) const
+    {
+        vk::ShaderModuleCreateInfo createInfo = {};
+        createInfo.codeSize = code.size();
+        createInfo.pCode = reinterpret_cast<const u32*>(code.data());
+
+        return vk::raii::ShaderModule{VulkanContext::LogicalDevice(), createInfo};
+    }
+
+    void VulkanShader::CreatePipeline(std::array<vk::PipelineShaderStageCreateInfo, 2> shaderStages)
+    {
         /* From Vulkan
          *
          *typedef struct VkGraphicsPipelineCreateInfo {
@@ -116,7 +134,7 @@ namespace Vex
         rasterizer.rasterizerDiscardEnable = vk::False;
         rasterizer.polygonMode = vk::PolygonMode::eFill;
 
-        // TODO: set culling
+        // TODO: enable culling
         rasterizer.cullMode = vk::CullModeFlagBits::eNone;
         rasterizer.frontFace = vk::FrontFace::eCounterClockwise;
         rasterizer.depthBiasEnable = vk::False;
@@ -144,12 +162,10 @@ namespace Vex
 
         vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
         pipelineLayoutCreateInfo.setLayoutCount = 1;
-        pipelineLayoutCreateInfo.pSetLayouts =
-            &*((VulkanUniformBuffer*)(uniformBuffer.Get()))->GetSetLayout();
+        pipelineLayoutCreateInfo.pSetLayouts = &*m_CameraDescriptorSetLayout;
         pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
 
-        m_PipelineLayout =
-            vk::raii::PipelineLayout{VulkanContext::QueryLogicalDevice(), pipelineLayoutCreateInfo};
+        m_PipelineLayout = vk::raii::PipelineLayout{VulkanContext::LogicalDevice(), pipelineLayoutCreateInfo};
 
         vk::PipelineRenderingCreateInfo renderingInfo = {};
         renderingInfo.colorAttachmentCount = 1;
@@ -173,21 +189,42 @@ namespace Vex
         pipelineInfo.renderPass = nullptr;
         pipelineInfo.pNext = &renderingInfo;
 
-        m_Pipeline = vk::raii::Pipeline{VulkanContext::QueryLogicalDevice(), nullptr, pipelineInfo};
+        m_Pipeline = vk::raii::Pipeline{VulkanContext::LogicalDevice(), nullptr, pipelineInfo};
     }
 
-    void VulkanShader::Bind() const
+    void VulkanShader::CreateDescriptorPools()
     {
-        VulkanContext::QueryGraphicsCommandBuffer().bindPipeline(
-            vk::PipelineBindPoint::eGraphics, m_Pipeline);
+        // TODO: Make max UBO's not hardcoded
+        constexpr u32 maxCameraUBOGroups = 32;
+
+        vk::DescriptorPoolSize poolSize = {};
+        poolSize.type = vk::DescriptorType::eUniformBuffer;
+        poolSize.descriptorCount = VulkanSwapChain::MaxFramesInFlight() * maxCameraUBOGroups;
+
+        vk::DescriptorPoolCreateInfo poolInfo = {};
+        poolInfo.poolSizeCount = 1;
+        poolInfo.pPoolSizes = &poolSize;
+        poolInfo.maxSets = VulkanSwapChain::MaxFramesInFlight() * maxCameraUBOGroups;
+        poolInfo.flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet;
+
+        m_CameraDescriptorPool = vk::raii::DescriptorPool{VulkanContext::LogicalDevice(), poolInfo};
     }
 
-    vk::raii::ShaderModule VulkanShader::CreateShaderModule(const std::vector<char>& code) const
+    void VulkanShader::CreateDescriptorSetLayouts()
     {
-        vk::ShaderModuleCreateInfo createInfo = {};
-        createInfo.codeSize = code.size();
-        createInfo.pCode = reinterpret_cast<const u32*>(code.data());
+        vk::DescriptorSetLayoutBinding layoutBindings = {};
 
-        return vk::raii::ShaderModule{VulkanContext::QueryLogicalDevice(), createInfo};
+        // Camera layout binding
+        layoutBindings.binding = 0;
+        layoutBindings.descriptorType = vk::DescriptorType::eUniformBuffer;
+        layoutBindings.descriptorCount = 1;
+        layoutBindings.stageFlags = vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment;
+        layoutBindings.pImmutableSamplers = nullptr;
+
+        vk::DescriptorSetLayoutCreateInfo layoutInfo = {};
+        layoutInfo.bindingCount = 1;
+        layoutInfo.pBindings = &layoutBindings;
+
+        m_CameraDescriptorSetLayout = {VulkanContext::LogicalDevice(), layoutInfo};
     }
 } // namespace Vex

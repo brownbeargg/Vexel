@@ -7,8 +7,7 @@
 
 namespace Vex
 {
-    // TODO: Refactor
-    VulkanUniformBuffer::VulkanUniformBuffer()
+    VulkanUniformBuffer::VulkanUniformBuffer(Ref<Shader> shader)
     {
         for (u32 i{}; i < VulkanSwapChain::MaxFramesInFlight(); ++i)
         {
@@ -19,9 +18,7 @@ namespace Vex
             m_BuffersMapped.emplace_back(m_Buffers.back().Memory.mapMemory(0, bufferSize));
         }
 
-        CreatePool();
-        CreateSetLayout();
-        CreateDescriptorSets();
+        CreateDescriptorSets((VulkanShader*)shader.Get());
     }
 
     void VulkanUniformBuffer::Invalidate(const UniformBufferObject& ubo)
@@ -31,66 +28,28 @@ namespace Vex
 
     void VulkanUniformBuffer::Bind(Ref<Shader> shader)
     {
-        // TODO: Do not hardcode index
-
-        VulkanContext::QueryGraphicsCommandBuffer().bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
+        VulkanContext::GraphicsCommandBuffer().bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
             ((VulkanShader*)(shader.Get()))->GetPipelineLayout(), 0,
             {*m_DescriptorSets[VulkanContext::GetFrameIndex()]}, {});
     }
 
-    void VulkanUniformBuffer::CreatePool()
-    {
-        vk::DescriptorPoolSize poolSize = {};
-        poolSize.descriptorCount = VulkanSwapChain::MaxFramesInFlight();
-        poolSize.type = vk::DescriptorType::eUniformBuffer;
-
-        // TODO: Create 1 pool for multiple of these objects
-        vk::DescriptorPoolCreateInfo poolInfo = {};
-        poolInfo.poolSizeCount = 1;
-        poolInfo.pPoolSizes = &poolSize;
-        poolInfo.maxSets = VulkanSwapChain::MaxFramesInFlight();
-        poolInfo.flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet;
-
-        m_DescriptorPool = vk::raii::DescriptorPool{VulkanContext::QueryLogicalDevice(), poolInfo};
-    }
-
-    void VulkanUniformBuffer::CreateSetLayout()
-    {
-        vk::DescriptorSetLayoutBinding layoutBindings = {};
-
-        // TODO: make different bindings for different UBO types
-        layoutBindings.binding = 0;
-        layoutBindings.descriptorType = vk::DescriptorType::eUniformBuffer;
-        // TODO: Multiple descriptors
-        layoutBindings.descriptorCount = 1;
-        layoutBindings.stageFlags = vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment;
-        layoutBindings.pImmutableSamplers = nullptr;
-
-        vk::DescriptorSetLayoutCreateInfo layoutInfo = {};
-        layoutInfo.bindingCount = 1;
-        layoutInfo.pBindings = &layoutBindings;
-
-        m_DescriptorSetLayout = {VulkanContext::QueryLogicalDevice(), layoutInfo};
-    }
-
-    void VulkanUniformBuffer::CreateDescriptorSets()
+    void VulkanUniformBuffer::CreateDescriptorSets(VulkanShader* shader)
     {
         std::vector<vk::DescriptorSetLayout> layouts(
-            VulkanSwapChain::MaxFramesInFlight(), *m_DescriptorSetLayout);
+            VulkanSwapChain::MaxFramesInFlight(), shader->GetCameraDescriptorSetLayout());
 
         vk::DescriptorSetAllocateInfo allocInfo = {};
-        allocInfo.descriptorPool = *m_DescriptorPool;
+        allocInfo.descriptorPool = shader->GetCameraDescriptorPool();
         allocInfo.descriptorSetCount = VulkanSwapChain::MaxFramesInFlight();
         allocInfo.pSetLayouts = layouts.data();
 
-        m_DescriptorSets = vk::raii::DescriptorSets{VulkanContext::QueryLogicalDevice(), allocInfo};
+        m_DescriptorSets = vk::raii::DescriptorSets{VulkanContext::LogicalDevice(), allocInfo};
 
         for (u32 i{}; i < VulkanSwapChain::MaxFramesInFlight(); ++i)
         {
             vk::DescriptorBufferInfo bufferInfo = {};
             bufferInfo.buffer = m_Buffers[i].Buffer;
             bufferInfo.offset = 0;
-            // TODO: multiple UBO types
             bufferInfo.range = sizeof(UniformBufferObject);
 
             vk::WriteDescriptorSet descriptorWrite = {};
@@ -101,7 +60,7 @@ namespace Vex
             descriptorWrite.descriptorCount = 1;
             descriptorWrite.pBufferInfo = &bufferInfo;
 
-            VulkanContext::QueryLogicalDevice().updateDescriptorSets(descriptorWrite, nullptr);
+            VulkanContext::LogicalDevice().updateDescriptorSets(descriptorWrite, nullptr);
         }
     }
 } // namespace Vex

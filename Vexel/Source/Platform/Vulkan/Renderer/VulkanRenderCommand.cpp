@@ -15,7 +15,7 @@ namespace Vex
 
     void VulkanRenderCommand::DrawIndexed(Ref<VertexBuffer> vertexBuffer, Ref<IndexBuffer> indexBuffer)
     {
-        VulkanContext::QueryGraphicsCommandBuffer().drawIndexed(indexBuffer->GetIndexCount(), 1, 0, 0, 0);
+        VulkanContext::GraphicsCommandBuffer().drawIndexed(indexBuffer->GetIndexCount(), 1, 0, 0, 0);
     }
 
     void VulkanRenderCommand::Init()
@@ -25,7 +25,7 @@ namespace Vex
 
     void VulkanRenderCommand::Shutdown()
     {
-        VulkanContext::QueryLogicalDevice().waitIdle();
+        VulkanContext::LogicalDevice().waitIdle();
 
         s_PresentCompleteSemaphores.clear();
         s_RenderFinishedSemaphores.clear();
@@ -39,10 +39,10 @@ namespace Vex
         VulkanContext::IncFrameIndex();
         const u32 frameIndex = VulkanContext::GetFrameIndex();
 
-        vk::Device logicalDevice = VulkanContext::QueryLogicalDevice();
+        vk::Device logicalDevice = VulkanContext::LogicalDevice();
 
         Ref<VulkanSwapChain> swapChain =
-            VulkanContext::GetCurrentContext()->GetRendererContext()->ToVulkanContext()->GetSwapChain();
+            VulkanContext::GetCurrentContextWindow()->GetRendererContext()->ToVulkanContext()->GetSwapChain();
 
         // Wait for fence
         vk::Result fenceResult =
@@ -59,7 +59,7 @@ namespace Vex
 
         s_ImageIndex = imageIndex;
 
-        vk::CommandBuffer cmdBuf = VulkanContext::QueryGraphicsCommandBuffer();
+        vk::CommandBuffer cmdBuf = VulkanContext::GraphicsCommandBuffer();
 
         logicalDevice.resetFences(*s_InFlightFences[frameIndex]);
         cmdBuf.reset();
@@ -95,7 +95,7 @@ namespace Vex
 
     void VulkanRenderCommand::EndFrame()
     {
-        vk::CommandBuffer cmdBuf = VulkanContext::QueryGraphicsCommandBuffer();
+        vk::CommandBuffer cmdBuf = VulkanContext::GraphicsCommandBuffer();
 
         cmdBuf.endRendering();
 
@@ -105,7 +105,7 @@ namespace Vex
             vk::PipelineStageFlagBits2::eBottomOfPipe);
 
         const u32 frameIndex = VulkanContext::GetFrameIndex();
-        vk::raii::Queue& graphicsQueue = VulkanContext::QueryGraphicsQueue();
+        vk::raii::Queue& graphicsQueue = VulkanContext::GraphicsQueue();
 
         cmdBuf.end();
 
@@ -168,7 +168,7 @@ namespace Vex
             dependencyInfo.imageMemoryBarrierCount = 1;
             dependencyInfo.pImageMemoryBarriers = &barrier;
 
-            VulkanContext::QueryGraphicsCommandBuffer().pipelineBarrier2(dependencyInfo);
+            VulkanContext::GraphicsCommandBuffer().pipelineBarrier2(dependencyInfo);
         }
     } // namespace
 } // namespace Vex

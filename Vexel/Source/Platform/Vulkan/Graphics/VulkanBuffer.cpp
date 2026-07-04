@@ -26,7 +26,7 @@ namespace Vex
         bufferInfo.usage = input.Usage;
         bufferInfo.sharingMode = vk::SharingMode::eExclusive;
 
-        Buffer = VulkanContext::QueryLogicalDevice().createBuffer(bufferInfo);
+        Buffer = VulkanContext::LogicalDevice().createBuffer(bufferInfo);
 
         Allocate(input);
     }
@@ -34,7 +34,7 @@ namespace Vex
     u32 VulkanBuffer::FindMemoryTypeIndex(
         u32 supportedMemoryIndices, vk::MemoryPropertyFlags requestedProperties)
     {
-        vk::raii::PhysicalDevice& pd = VulkanContext::QueryPhysicalDevice();
+        vk::raii::PhysicalDevice& pd = VulkanContext::PhysicalDevice();
         vk::PhysicalDeviceMemoryProperties memoryProperties = pd.getMemoryProperties();
         for (u32 i{}; i < memoryProperties.memoryTypeCount; ++i)
         {
@@ -61,7 +61,7 @@ namespace Vex
         vk::MemoryAllocateInfo allocInfo = {};
         allocInfo.allocationSize = memoryRequirements.size;
         allocInfo.memoryTypeIndex = memTypeIndex;
-        Memory = VulkanContext::QueryLogicalDevice().allocateMemory(allocInfo);
+        Memory = VulkanContext::LogicalDevice().allocateMemory(allocInfo);
         Buffer.bindMemory(Memory, 0);
     }
 } // namespace Vex

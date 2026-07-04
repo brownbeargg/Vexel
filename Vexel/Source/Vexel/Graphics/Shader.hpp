@@ -14,7 +14,7 @@ namespace Vex
         virtual void Bind() const = 0;
 
         static Ref<Shader> Create(RootDirectory root, const std::filesystem::path& vertexPath,
-            const std::filesystem::path& fragmentPath, Ref<UniformBuffer> uniformBuffer);
+            const std::filesystem::path& fragmentPath);
 
       protected:
         Shader() = default;

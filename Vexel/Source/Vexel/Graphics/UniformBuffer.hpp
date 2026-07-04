@@ -15,7 +15,7 @@ namespace Vex
 
         virtual void Bind(Ref<Shader> shader) = 0;
 
-        static Ref<UniformBuffer> Create();
+        static Ref<UniformBuffer> Create(Ref<Shader> shader);
 
       protected:
         UniformBuffer() = default;

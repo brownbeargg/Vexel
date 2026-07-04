@@ -41,13 +41,13 @@ namespace Vex
         ImGui_ImplGlfw_InitForVulkan(window, true);
         ImGui_ImplVulkan_InitInfo info = {};
 
-        VulkanContextTypes& context = VulkanContext::QueryContextTypes();
+        VulkanContextTypes& context = VulkanContext::ContextTypes();
 
         info.Instance = *context.Instance;
         info.PhysicalDevice = *context.PhysicalDevice;
-        info.Device = *VulkanContext::QueryLogicalDevice();
+        info.Device = *VulkanContext::LogicalDevice();
         info.QueueFamily = VulkanContext::GetGraphicsQueueIndex();
-        info.Queue = *VulkanContext::QueryGraphicsQueue();
+        info.Queue = *VulkanContext::GraphicsQueue();
         info.PipelineCache = VK_NULL_HANDLE;
         info.MinImageCount = 2;
         info.DescriptorPoolSize = 16;
@@ -68,7 +68,7 @@ namespace Vex
 
     void VulkanImguiContext::DestroyContext()
     {
-        VulkanContext::QueryLogicalDevice().waitIdle();
+        VulkanContext::LogicalDevice().waitIdle();
 
         ImGui_ImplVulkan_Shutdown();
         ImGui_ImplGlfw_Shutdown();
@@ -93,7 +93,7 @@ namespace Vex
             ImGui::RenderPlatformWindowsDefault();
         }
 
-        vk::raii::CommandBuffer& cmdBuf = VulkanContext::QueryGraphicsCommandBuffer();
+        vk::raii::CommandBuffer& cmdBuf = VulkanContext::GraphicsCommandBuffer();
         ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), *cmdBuf);
     }
 } // namespace Vex

@@ -5,12 +5,12 @@
 
 namespace Vex
 {
-    Ref<UniformBuffer> UniformBuffer::Create()
+    Ref<UniformBuffer> UniformBuffer::Create(Ref<Shader> shader)
     {
         switch (RendererAPI::API())
         {
         case GraphicsAPIs::Vulkan:
-            return Ref<VulkanUniformBuffer>::Create();
+            return Ref<VulkanUniformBuffer>::Create(shader);
         }
 
         VEX_RELEASE_ASSERT(false, "Invalid renderer API");

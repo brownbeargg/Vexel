@@ -22,6 +22,11 @@ namespace Vex
 
         Ref<Shader> m_Shader;
 
+        Ref<UniformBuffer> m_FloorUniformBuffer;
+        Ref<VertexBuffer> m_FloorVertexBuffer;
+        Ref<IndexBuffer> m_FloorIndexBuffer;
+        UniformBufferObject m_FloorMVP;
+
         Ref<UniformBuffer> m_QuadUniformBuffer;
         Ref<VertexBuffer> m_QuadVertexBuffer;
         Ref<IndexBuffer> m_QuadIndexBuffer;

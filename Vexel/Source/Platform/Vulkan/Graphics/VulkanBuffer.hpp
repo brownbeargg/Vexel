@@ -21,7 +21,7 @@ namespace Vex
       public:
         VulkanBuffer() = default;
         VulkanBuffer(const VulkanBufferInput& input);
-        ~VulkanBuffer() { VulkanContext::QueryLogicalDevice().waitIdle(); }
+        ~VulkanBuffer() { VulkanContext::LogicalDevice().waitIdle(); }
 
         VulkanBuffer(const VulkanBuffer& other) = delete;
         VulkanBuffer& operator=(const VulkanBuffer& other) = delete;

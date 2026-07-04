@@ -30,26 +30,26 @@ namespace Vex
         static void CreateContext();
         static void DestroyContext();
 
-        static vk::raii::PhysicalDevice& QueryPhysicalDevice() { return s_Context.PhysicalDevice; }
-        static vk::raii::Instance& QueryInstance() { return s_Context.Instance; }
-        static vk::raii::Device& QueryLogicalDevice() { return s_LogicalDevice; }
+        static vk::raii::PhysicalDevice& PhysicalDevice() { return s_Context.PhysicalDevice; }
+        static vk::raii::Instance& Instance() { return s_Context.Instance; }
+        static vk::raii::Device& LogicalDevice() { return s_LogicalDevice; }
 
         static u32 GetGraphicsQueueIndex() { return s_GraphicsQueueIndex; }
-        static vk::raii::Queue& QueryGraphicsQueue() { return s_GraphicsQueue; }
-        static vk::raii::CommandPool& QueryGraphicsCommandPool() { return s_GraphicsCommandPool; }
-        static vk::raii::CommandBuffer& QueryGraphicsCommandBuffer()
+        static vk::raii::Queue& GraphicsQueue() { return s_GraphicsQueue; }
+        static vk::raii::CommandPool& GraphicsCommandPool() { return s_GraphicsCommandPool; }
+        static vk::raii::CommandBuffer& GraphicsCommandBuffer()
         {
             return s_GraphicsCommandBuffers[s_CurrentFrameIndex];
         }
 
         static u32 GetTransferQueueIndex() { return s_TransferQueueIndex; }
-        static vk::raii::Queue& QueryTransferQueue() { return s_TransferQueue; }
-        static vk::raii::CommandPool& QueryTransferCommandPool() { return s_TransferCommandPool; }
-        static vk::raii::CommandBuffer& QueryTransferCommandBuffer() { return s_TransferCommandBuffer; }
+        static vk::raii::Queue& TransferQueue() { return s_TransferQueue; }
+        static vk::raii::CommandPool& TransferCommandPool() { return s_TransferCommandPool; }
+        static vk::raii::CommandBuffer& TransferCommandBuffer() { return s_TransferCommandBuffer; }
 
-        static VulkanContextTypes& QueryContextTypes() { return s_Context; }
+        static VulkanContextTypes& ContextTypes() { return s_Context; }
 
-        static Observer<Window> GetCurrentContext() { return s_CurrentContext; }
+        static Observer<Window> GetCurrentContextWindow() { return s_CurrentContext; }
 
         static Observer<VulkanContext> GetCurrentVulkanContext()
         {

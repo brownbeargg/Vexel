@@ -15,7 +15,7 @@ namespace Vex
 
     void VulkanVertexBuffer::Bind() const
     {
-        VulkanContext::QueryGraphicsCommandBuffer().bindVertexBuffers(
+        VulkanContext::GraphicsCommandBuffer().bindVertexBuffers(
             0, {m_Buffer.Buffer}, vk::DeviceSize{0});
     }
 } // namespace Vex

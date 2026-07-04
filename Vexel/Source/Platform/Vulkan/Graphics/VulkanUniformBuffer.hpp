@@ -5,29 +5,24 @@
 
 namespace Vex
 {
+    class VulkanShader;
+
     class VulkanUniformBuffer final : public UniformBuffer
     {
       public:
-        VulkanUniformBuffer();
+        VulkanUniformBuffer(Ref<Shader> shader);
 
         void Invalidate(const UniformBufferObject& ubo) override;
 
         void Bind(Ref<Shader> shader) override;
 
-        const vk::raii::DescriptorSetLayout& GetSetLayout() const { return m_DescriptorSetLayout; }
-
       private:
-        void CreatePool();
-        void CreateSetLayout();
-        void CreateDescriptorSets();
+        void CreateDescriptorSets(VulkanShader* shader);
 
       private:
         std::vector<VulkanBuffer> m_Buffers;
         std::vector<void*> m_BuffersMapped;
 
-        vk::raii::DescriptorSetLayout m_DescriptorSetLayout = nullptr;
-
-        vk::raii::DescriptorPool m_DescriptorPool = nullptr;
         std::vector<vk::raii::DescriptorSet> m_DescriptorSets;
     };
 } // namespace Vex

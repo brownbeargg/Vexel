@@ -4,11 +4,24 @@ namespace Vex
 {
     EditorLayer::EditorLayer() : Layer("EditorLayer")
     {
-        m_QuadUniformBuffer = UniformBuffer::Create();
-        m_TriangleUniformBuffer = UniformBuffer::Create();
+        m_Shader = Shader::Create(RootDirectory::Assets, "Shaders/Basic.vert.spv", "Shaders/Basic.frag.spv");
 
-        m_Shader = Shader::Create(
-            RootDirectory::Assets, "Shaders/Basic.vert.spv", "Shaders/Basic.frag.spv", m_QuadUniformBuffer);
+        std::vector<VertexData> floorVertices = {
+            {{-0.5f, 0.0f, -0.5f}, {1.0f, 1.0f, 1.0f}},
+            {{0.5f, 0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+            {{0.5f, 0.0f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+            {{-0.5f, 0.0f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+        };
+
+        std::vector<u32> floorIndices = {0, 1, 2, 0, 2, 3};
+
+        m_FloorVertexBuffer = VertexBuffer::Create(floorVertices);
+        m_FloorIndexBuffer = IndexBuffer::Create(floorIndices);
+
+        m_FloorUniformBuffer = UniformBuffer::Create(m_Shader);
+        m_FloorMVP.Model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 5.0f, 0.0f));
+        m_FloorMVP.Model *= glm::scale(glm::mat4(1.0f), glm::vec3(30.0f, 1.0f, 30.0f));
+
         std::vector<VertexData> quadVertices = {
             {{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}}, // Bottom left
             {{0.5f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},  // Bottom Right
@@ -21,6 +34,9 @@ namespace Vex
         m_QuadVertexBuffer = VertexBuffer::Create(quadVertices);
         m_QuadIndexBuffer = IndexBuffer::Create(quadIndices);
 
+        m_QuadUniformBuffer = UniformBuffer::Create(m_Shader);
+        m_QuadMVP.Model = glm::translate(glm::mat4(1.0f), glm::vec3(0.5f, 0.5f, 0.0f));
+
         std::vector<VertexData> triangleVertices = {
             {{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}}, // Bottom left
             {{0.5f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},  // Bottom Right
@@ -32,7 +48,7 @@ namespace Vex
         m_TriangleVertexBuffer = VertexBuffer::Create(triangleVertices);
         m_TriangleIndexBuffer = IndexBuffer::Create(triangleIndices);
 
-        m_QuadMVP.Model = glm::translate(glm::mat4(1.0f), glm::vec3(0.5f, 0.5f, 0.0f));
+        m_TriangleUniformBuffer = UniformBuffer::Create(m_Shader);
         m_TriangleMVP.Model = glm::translate(glm::mat4(1.0f), glm::vec3(-0.5f, -0.5f, 0.0f));
 
         Ref<Window> window = Application::GetActiveWindows()[0];
@@ -46,6 +62,14 @@ namespace Vex
         m_FPS = 1 / dt;
 
         HandleInput();
+
+        m_FloorMVP.View = m_Camera->GetViewMatrix();
+        m_FloorMVP.Projection = m_Camera->GetProjectionMatrix();
+        m_FloorUniformBuffer->Invalidate(m_FloorMVP);
+        m_FloorUniformBuffer->Bind(m_Shader);
+
+        m_Shader->Bind();
+        RendererAPI::DrawIndexed(m_FloorVertexBuffer, m_FloorIndexBuffer);
 
         m_QuadMVP.Model =
             glm::rotate(m_QuadMVP.Model, glm::radians(10 * dt.Sec()), glm::vec3{0.0f, 0.0f, 1.0f});
